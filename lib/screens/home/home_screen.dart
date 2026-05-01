@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -151,14 +153,22 @@ class _HomeBody extends StatelessWidget {
                   return Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
                           color: AppColors.primaryNeon.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          color: AppColors.primaryNeon,
+                        child: ClipOval(
+                          child: (char?.avatarUrl.isNotEmpty ?? false)
+                              ? Image.file(
+                                  File(char!.avatarUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  color: AppColors.primaryNeon,
+                                ),
                         ),
                       ),
                       const SizedBox(width: 15),
@@ -191,7 +201,7 @@ class _HomeBody extends StatelessWidget {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: LinearProgressIndicator(
-                                      value: ((char?.totalXP ?? 0) % 100) / 100, // Example progress logic
+                                      value: _xpProgress(char?.totalXP ?? 0),
                                       backgroundColor: AppColors.textSecondary.withOpacity(0.2),
                                       color: AppColors.xpColor,
                                       minHeight: 6,
@@ -445,4 +455,14 @@ class _DailyMissionTile extends StatelessWidget {
       ),
     );
   }
+}
+
+double _xpProgress(int totalXp) {
+  final level = CharacterProvider.levelForXp(totalXp);
+  final intoLevel = CharacterProvider.xpIntoLevel(totalXp);
+  final required = CharacterProvider.xpRequiredForNextLevel(level);
+  if (required <= 0) {
+    return 0;
+  }
+  return (intoLevel / required).clamp(0.0, 1.0);
 }

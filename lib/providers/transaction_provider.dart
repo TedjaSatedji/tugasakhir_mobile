@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import 'package:uuid/uuid.dart';
+import '../services/local_database.dart';
 
 class TransactionProvider extends ChangeNotifier {
+  final LocalDatabase _db = LocalDatabase.instance;
   final List<TransactionModel> _transactions = [];
   bool _isLoading = false;
 
@@ -19,11 +21,29 @@ class TransactionProvider extends ChangeNotifier {
 
   double get balance => totalIncome - totalExpense;
 
+  TransactionProvider() {
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    _isLoading = true;
+    notifyListeners();
+
+    final items = await _db.getTransactions();
+    _transactions
+      ..clear()
+      ..addAll(items);
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> addTransaction(
     TransactionType type,
     ExpenseCategory? category,
     double amount,
     String description,
+    String? receiptImageUrl,
   ) async {
     _isLoading = true;
     notifyListeners();
@@ -38,15 +58,18 @@ class TransactionProvider extends ChangeNotifier {
       amount: amount,
       description: description,
       timestamp: DateTime.now(),
+      receiptImageUrl: receiptImageUrl,
     );
 
     _transactions.add(transaction);
+    await _db.upsertTransaction(transaction);
     _isLoading = false;
     notifyListeners();
   }
 
-  void deleteTransaction(String transactionId) {
+  Future<void> deleteTransaction(String transactionId) async {
     _transactions.removeWhere((t) => t.id == transactionId);
+    await _db.deleteTransaction(transactionId);
     notifyListeners();
   }
 

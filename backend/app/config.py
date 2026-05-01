@@ -22,3 +22,10 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_FROM = os.getenv("SMTP_FROM", "")
 
 VERIFY_URL_BASE = os.getenv("VERIFY_URL_BASE", "http://localhost:8000/auth/verify-email")
+
+GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY", "")
+GOOGLE_AI_MODEL = os.getenv("GOOGLE_AI_MODEL", "gemma-3-27b-it")
+GOOGLE_AI_BASE_URL = os.getenv(
+	"GOOGLE_AI_BASE_URL",
+	"https://generativelanguage.googleapis.com/v1beta",
+)

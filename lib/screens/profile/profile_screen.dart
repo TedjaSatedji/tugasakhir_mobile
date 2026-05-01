@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -56,8 +58,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  character?.characterClass.name.toUpperCase() ??
-                                      'WARRIOR',
+                                  _titleForLevel(character?.level ?? 1),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: AppColors.primaryNeon,
@@ -78,10 +79,17 @@ class ProfileScreen extends StatelessWidget {
                                 width: 3,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 40,
-                              color: AppColors.primaryNeon,
+                            child: ClipOval(
+                              child: (character?.avatarUrl.isNotEmpty ?? false)
+                                  ? Image.file(
+                                      File(character!.avatarUrl),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: AppColors.primaryNeon,
+                                    ),
                             ),
                           ),
                         ],
@@ -202,6 +210,14 @@ class _InfoTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _titleForLevel(int level) {
+  if (level >= 20) return 'LEGEND';
+  if (level >= 15) return 'ELITE';
+  if (level >= 10) return 'VETERAN';
+  if (level >= 5) return 'ADVENTURER';
+  return 'NOVICE';
 }
 
 class _StatRow extends StatelessWidget {

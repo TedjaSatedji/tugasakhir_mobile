@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/receipt_ai_service.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/character_provider.dart';
@@ -22,6 +26,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   TransactionType _selectedType = TransactionType.expense;
   ExpenseCategory _selectedCategory = ExpenseCategory.food;
+  final ImagePicker _imagePicker = ImagePicker();
+  String? _receiptImagePath;
+  bool _isScanning = false;
+  final ReceiptAiService _receiptAiService = ReceiptAiService();
 
   @override
   void initState() {
@@ -149,6 +157,73 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 20),
 
+            const Text(
+              'Foto (Opsional)',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickReceiptImage,
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Pilih Foto'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primaryNeon,
+                      side: const BorderSide(color: AppColors.primaryNeon),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isScanning ? null : _scanReceipt,
+                    icon: _isScanning
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.auto_fix_high),
+                    label: Text(_isScanning ? 'Memindai...' : 'Scan'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.secondaryNeon,
+                      side: const BorderSide(color: AppColors.secondaryNeon),
+                    ),
+                  ),
+                ),
+                if (_receiptImagePath != null) ...[
+                  const SizedBox(width: 10),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _receiptImagePath = null;
+                      });
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                    color: AppColors.error,
+                  ),
+                ],
+              ],
+            ),
+            if (_receiptImagePath != null) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(_receiptImagePath!),
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+            const SizedBox(height: 20),
+
             // Category (for expense only)
             if (_selectedType == TransactionType.expense) ...[
               const Text(
@@ -193,7 +268,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   if (_amountController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -208,19 +283,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       ? _selectedCategory
                       : null;
 
-                  context.read<TransactionProvider>().addTransaction(
+                  await context.read<TransactionProvider>().addTransaction(
                     _selectedType,
                     category,
                     amount,
                     _descriptionController.text.isEmpty
                         ? 'Transaksi'
                         : _descriptionController.text,
+                    _receiptImagePath,
                   );
 
-                  // Reward XP for logging transaction
-                  context.read<CharacterProvider>().addXP(10);
-                  // Complete daily mission
-                  context.read<QuestProvider>().completeDailyMission('mission_1');
+                    await context.read<CharacterProvider>().addXpForAmount(amount);
+
+                    // Complete daily mission and award its XP
+                  final missionXp = await context
+                      .read<QuestProvider>()
+                      .completeDailyMission('mission_1');
+                  if (missionXp > 0) {
+                    await context.read<CharacterProvider>().addXP(missionXp);
+                  }
 
                   // Show Notification
                   context.read<NotificationProvider>().addNotification(
@@ -253,6 +334,88 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickReceiptImage() async {
+    final image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (image == null) {
+      return;
+    }
+
+    setState(() {
+      _receiptImagePath = image.path;
+    });
+  }
+
+  Future<void> _scanReceipt() async {
+    if (_receiptImagePath == null || _receiptImagePath!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih foto terlebih dahulu')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isScanning = true;
+    });
+
+    try {
+      final result = await _receiptAiService.extractFromImage(
+        _receiptImagePath!,
+      );
+
+      if (result.amount != null) {
+        _amountController.text = result.amount!.toStringAsFixed(0);
+      }
+
+      if (result.description != null && result.description!.isNotEmpty) {
+        _descriptionController.text = result.description!;
+      }
+
+      if (result.type != null && result.type!.isNotEmpty) {
+        final type = result.type!.toLowerCase();
+        if (type == 'income' || type == 'expense') {
+          _selectedType =
+              type == 'income' ? TransactionType.income : TransactionType.expense;
+        }
+      }
+
+      if (result.category != null && result.category!.isNotEmpty) {
+        final category = _mapCategory(result.category!);
+        if (category != null) {
+          _selectedCategory = category;
+        }
+      }
+
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data otomatis terisi')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
+    }
+  }
+
+  ExpenseCategory? _mapCategory(String raw) {
+    final normalized = raw.toLowerCase().trim();
+    for (final category in ExpenseCategory.values) {
+      if (category.name.toLowerCase() == normalized) {
+        return category;
+      }
+    }
+    return null;
   }
 }
 

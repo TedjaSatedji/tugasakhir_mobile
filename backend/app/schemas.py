@@ -40,3 +40,16 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class ReceiptExtractRequest(BaseModel):
+    image_base64: str
+    mime_type: str
+
+
+class ReceiptExtractResponse(BaseModel):
+    amount: float | None = None
+    description: str | None = None
+    date: str | None = None
+    category: str | None = None
+    type: str | None = None

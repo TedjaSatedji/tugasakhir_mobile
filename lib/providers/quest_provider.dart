@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/quest_model.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
+import '../services/local_database.dart';
 
 class DailyMission {
   final String id;
@@ -17,7 +18,31 @@ class DailyMission {
   });
 }
 
+class QuestProgressResult {
+  final int progressXp;
+  final int completionXp;
+  final int missionXp;
+  final bool completedNow;
+
+  const QuestProgressResult({
+    required this.progressXp,
+    required this.completionXp,
+    required this.missionXp,
+    required this.completedNow,
+  });
+
+  int get totalXp => progressXp + completionXp + missionXp;
+
+  static const none = QuestProgressResult(
+    progressXp: 0,
+    completionXp: 0,
+    missionXp: 0,
+    completedNow: false,
+  );
+}
+
 class QuestProvider extends ChangeNotifier {
+  final LocalDatabase _db = LocalDatabase.instance;
   final List<QuestModel> _quests = [];
   final List<DailyMission> _dailyMissions = [];
   bool _isLoading = false;
@@ -33,35 +58,85 @@ class QuestProvider extends ChangeNotifier {
       _quests.where((q) => q.status == QuestStatus.completed).toList();
 
   QuestProvider() {
-    _generateDailyMissions();
+    _loadQuests();
   }
 
-  void _generateDailyMissions() {
-    _dailyMissions.clear();
-    // Basic mission
-    _dailyMissions.add(DailyMission(
-      id: 'mission_1',
-      title: 'Catat 1 Transaksi Keuangan',
-      xpReward: 20,
-    ));
+  Future<void> _loadQuests() async {
+    _isLoading = true;
+    notifyListeners();
 
-    // Dynamic mission based on active goals
-    // Wait, since this is called on init, _quests might be empty. 
-    // We can add a generic one for now.
-    _dailyMissions.add(DailyMission(
-      id: 'mission_2',
-      title: 'Sisihkan uang untuk Target Tabungan',
-      xpReward: 50,
-    ));
+    final items = await _db.getQuests();
+    _quests
+      ..clear()
+      ..addAll(items);
+
+    _isLoading = false;
+    await _loadDailyMissions();
     notifyListeners();
   }
 
-  void completeDailyMission(String id) {
-    final mission = _dailyMissions.firstWhere((m) => m.id == id, orElse: () => _dailyMissions.first);
+  Future<void> _loadDailyMissions() async {
+    _dailyMissions.clear();
+
+    final dateKey = _todayKey();
+    final savedStates = await _db.getDailyMissionStates(dateKey);
+
+    final missions = <DailyMission>[
+      DailyMission(
+        id: 'mission_1',
+        title: 'Catat 1 Transaksi Keuangan',
+        xpReward: 20,
+        isCompleted: savedStates['mission_1'] ?? false,
+      ),
+      DailyMission(
+        id: 'mission_2',
+        title: 'Sisihkan uang untuk Target Tabungan',
+        xpReward: 50,
+        isCompleted: savedStates['mission_2'] ?? false,
+      ),
+    ];
+
+    _dailyMissions.addAll(missions);
+
+    for (final mission in missions) {
+      await _db.upsertDailyMissionState(
+        dateKey: dateKey,
+        missionId: mission.id,
+        isCompleted: mission.isCompleted,
+      );
+    }
+  }
+
+  String _todayKey() {
+    final now = DateTime.now();
+    return '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<int> completeDailyMission(String id) async {
+    if (_dailyMissions.isEmpty) {
+      await _loadDailyMissions();
+    }
+
+    final index = _dailyMissions.indexWhere((m) => m.id == id);
+    if (index == -1) {
+      return 0;
+    }
+
+    final mission = _dailyMissions[index];
     if (!mission.isCompleted) {
       mission.isCompleted = true;
+      await _db.upsertDailyMissionState(
+        dateKey: _todayKey(),
+        missionId: mission.id,
+        isCompleted: true,
+      );
       notifyListeners();
+      return mission.xpReward;
     }
+
+    return 0;
   }
 
   Future<void> createQuest(
@@ -92,57 +167,77 @@ class QuestProvider extends ChangeNotifier {
     );
 
     _quests.add(quest);
+    await _db.upsertQuest(quest);
     _isLoading = false;
     notifyListeners();
   }
 
-  void addFundsToGoal(String questId, double amount) {
+  Future<QuestProgressResult> addFundsToGoal(String questId, double amount) async {
     final index = _quests.indexWhere((q) => q.id == questId);
-    if (index != -1) {
-      final quest = _quests[index];
-      double newAmount = quest.currentSavedAmount + amount;
-      
-      int newProgress = (newAmount / quest.targetAmount * 100).toInt();
-      if (newProgress > 100) newProgress = 100;
-
-      QuestStatus newStatus = quest.status;
-      if (newAmount >= quest.targetAmount) {
-        newAmount = quest.targetAmount;
-        newStatus = QuestStatus.completed;
-      }
-
-      _quests[index] = quest.copyWith(
-        currentSavedAmount: newAmount,
-        progressPercentage: newProgress,
-        status: newStatus,
-      );
-      
-      // Also complete the daily mission for saving money
-      completeDailyMission('mission_2');
-      
-      notifyListeners();
+    if (index == -1 || amount <= 0) {
+      return QuestProgressResult.none;
     }
+
+    final quest = _quests[index];
+    if (quest.status == QuestStatus.completed) {
+      return QuestProgressResult.none;
+    }
+
+    double newAmount = quest.currentSavedAmount + amount;
+    int newProgress = (newAmount / quest.targetAmount * 100).toInt();
+    if (newProgress > 100) newProgress = 100;
+
+    QuestStatus newStatus = quest.status;
+    bool completedNow = false;
+    if (newAmount >= quest.targetAmount) {
+      newAmount = quest.targetAmount;
+      newStatus = QuestStatus.completed;
+      completedNow = true;
+    }
+
+    _quests[index] = quest.copyWith(
+      currentSavedAmount: newAmount,
+      progressPercentage: newProgress,
+      status: newStatus,
+    );
+
+    await _db.upsertQuest(_quests[index]);
+
+    // Also complete the daily mission for saving money
+    final missionXp = await completeDailyMission('mission_2');
+
+    notifyListeners();
+
+    return QuestProgressResult(
+      progressXp: 0,
+      completionXp: completedNow ? quest.xpReward : 0,
+      missionXp: missionXp,
+      completedNow: completedNow,
+    );
   }
 
-  void completeQuest(String questId) {
+  Future<void> completeQuest(String questId) async {
     final index = _quests.indexWhere((q) => q.id == questId);
     if (index != -1) {
       _quests[index] = _quests[index].copyWith(status: QuestStatus.completed);
+      await _db.upsertQuest(_quests[index]);
       notifyListeners();
     }
   }
 
-  void updateQuestProgress(String questId, int progress) {
+  Future<void> updateQuestProgress(String questId, int progress) async {
     final index = _quests.indexWhere((q) => q.id == questId);
     if (index != -1) {
       _quests[index] =
           _quests[index].copyWith(progressPercentage: progress);
+      await _db.upsertQuest(_quests[index]);
       notifyListeners();
     }
   }
 
-  void deleteQuest(String questId) {
+  Future<void> deleteQuest(String questId) async {
     _quests.removeWhere((q) => q.id == questId);
+    await _db.deleteQuest(questId);
     notifyListeners();
   }
 }

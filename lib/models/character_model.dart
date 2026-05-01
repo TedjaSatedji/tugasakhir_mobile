@@ -56,19 +56,21 @@ class CharacterModel {
   }
 
   CharacterModel copyWith({
+    String? name,
     int? level,
     int? totalXP,
+    String? avatarUrl,
   }) {
     return CharacterModel(
       id: id,
       userId: userId,
-      name: name,
+      name: name ?? this.name,
       characterClass: characterClass,
       level: level ?? this.level,
       totalXP: totalXP ?? this.totalXP,
       hp: hp,
       mp: mp,
-      avatarUrl: avatarUrl,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       stats: stats,
     );
   }

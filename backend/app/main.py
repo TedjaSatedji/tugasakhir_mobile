@@ -1,9 +1,20 @@
 from datetime import datetime, timedelta, timezone
+import json
+import re
+
+import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import auth, models, schemas
-from .config import APP_NAME, CORS_ORIGINS, RESET_CODE_EXPIRE_MINUTES
+from .config import (
+    APP_NAME,
+    CORS_ORIGINS,
+    GOOGLE_AI_API_KEY,
+    GOOGLE_AI_BASE_URL,
+    GOOGLE_AI_MODEL,
+    RESET_CODE_EXPIRE_MINUTES,
+)
 from .database import Base, engine, get_db
 from .email_utils import send_password_reset_email, send_verification_email
 
@@ -18,6 +29,85 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _extract_json_payload(text: str) -> dict:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+        if not match:
+            raise
+        return json.loads(match.group(0))
+
+
+@app.post("/ai/receipt-extract", response_model=schemas.ReceiptExtractResponse)
+async def extract_receipt(payload: schemas.ReceiptExtractRequest):
+    if not GOOGLE_AI_API_KEY:
+        raise HTTPException(status_code=500, detail="AI API key is not configured")
+
+    prompt = (
+        "You are extracting receipt/income information from an image. "
+        "Return ONLY valid JSON with these keys: "
+        "amount (number), description (string), date (YYYY-MM-DD or empty), "
+        "category (one of: food, fashion, hobby, transport, health, education, entertainment, other), "
+        "type (income or expense or unknown). "
+        "If a field is missing, use null or empty string for date."
+    )
+
+    url = f"{GOOGLE_AI_BASE_URL}/models/{GOOGLE_AI_MODEL}:generateContent"
+    request_body = {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inlineData": {
+                            "mimeType": payload.mime_type,
+                            "data": payload.image_base64,
+                        }
+                    },
+                ],
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.2,
+            "maxOutputTokens": 256,
+        },
+    }
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            url,
+            params={"key": GOOGLE_AI_API_KEY},
+            json=request_body,
+        )
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI request failed: {response.text}",
+        )
+
+    data = response.json()
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="AI response was invalid")
+
+    try:
+        payload_json = _extract_json_payload(text)
+    except Exception:
+        raise HTTPException(status_code=502, detail="AI response was not JSON")
+
+    return schemas.ReceiptExtractResponse(
+        amount=payload_json.get("amount"),
+        description=payload_json.get("description"),
+        date=payload_json.get("date"),
+        category=payload_json.get("category"),
+        type=payload_json.get("type"),
+    )
 
 
 @app.post("/auth/register", response_model=schemas.MessageResponse)

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
+import '../../providers/character_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
 import 'create_quest_screen.dart';
@@ -556,10 +557,20 @@ class _GoalCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final amount = double.tryParse(amountController.text) ?? 0;
                     if (amount > 0) {
-                      context.read<QuestProvider>().addFundsToGoal(quest.id, amount);
+                      final result = await context
+                          .read<QuestProvider>()
+                          .addFundsToGoal(quest.id, amount);
+                      await context
+                          .read<CharacterProvider>()
+                          .addXpForAmount(amount);
+                      if (result.totalXp > 0) {
+                        await context
+                            .read<CharacterProvider>()
+                            .addXP(result.totalXp);
+                      }
                       
                       context.read<NotificationProvider>().addNotification(
                         NotificationModel(

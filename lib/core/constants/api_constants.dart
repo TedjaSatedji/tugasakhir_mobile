@@ -6,4 +6,5 @@ class ApiConstants {
   static const String requestPasswordResetPath = '/auth/request-password-reset';
   static const String verifyResetCodePath = '/auth/verify-reset-code';
   static const String resetPasswordPath = '/auth/reset-password';
+  static const String receiptExtractPath = '/ai/receipt-extract';
 }

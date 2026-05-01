@@ -40,8 +40,8 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.delete, color: AppColors.error),
-                onPressed: () {
-                  questProvider.deleteQuest(currentQuest.id);
+                onPressed: () async {
+                  await questProvider.deleteQuest(currentQuest.id);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Target dihapus')),
@@ -280,10 +280,16 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final amount = double.tryParse(amountController.text) ?? 0;
               if (amount > 0) {
-                context.read<QuestProvider>().addFundsToGoal(quest.id, amount);
+                final result = await context
+                    .read<QuestProvider>()
+                    .addFundsToGoal(quest.id, amount);
+                await context.read<CharacterProvider>().addXpForAmount(amount);
+                if (result.totalXp > 0) {
+                  await context.read<CharacterProvider>().addXP(result.totalXp);
+                }
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Dana berhasil ditambahkan!')),

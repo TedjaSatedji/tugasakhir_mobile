@@ -1,0 +1,204 @@
+import 'dart:convert';
+
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+import '../models/character_model.dart';
+import '../models/quest_model.dart';
+import '../models/transaction_model.dart';
+
+class LocalDatabase {
+  LocalDatabase._();
+
+  static final LocalDatabase instance = LocalDatabase._();
+
+  Database? _db;
+
+  Future<Database> get database async {
+    if (_db != null) {
+      return _db!;
+    }
+    _db = await _initDb();
+    return _db!;
+  }
+
+  Future<Database> _initDb() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'tugasakhir_mobile.db');
+    return openDatabase(
+      path,
+      version: 2,
+      onCreate: (db, version) async {
+        await _createTransactionsTable(db);
+        await _createQuestsTable(db);
+        await _createCharacterTable(db);
+        await _createDailyMissionsTable(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await _createDailyMissionsTable(db);
+        }
+      },
+    );
+  }
+
+  Future<void> _createTransactionsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE transactions (
+        id TEXT PRIMARY KEY,
+        userId TEXT,
+        type INTEGER,
+        category INTEGER,
+        amount REAL,
+        description TEXT,
+        timestamp TEXT,
+        receiptImageUrl TEXT,
+        detectedCategory TEXT
+      )
+    ''');
+  }
+
+  Future<void> _createQuestsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE quests (
+        id TEXT PRIMARY KEY,
+        userId TEXT,
+        title TEXT,
+        description TEXT,
+        xpReward INTEGER,
+        targetAmount REAL,
+        currentSavedAmount REAL,
+        category INTEGER,
+        status INTEGER,
+        deadline TEXT,
+        createdAt TEXT,
+        progressPercentage INTEGER
+      )
+    ''');
+  }
+
+  Future<void> _createCharacterTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE character (
+        id TEXT PRIMARY KEY,
+        userId TEXT,
+        name TEXT,
+        characterClass INTEGER,
+        level INTEGER,
+        totalXP INTEGER,
+        hp INTEGER,
+        mp INTEGER,
+        avatarUrl TEXT,
+        stats TEXT
+      )
+    ''');
+  }
+
+  Future<void> _createDailyMissionsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE daily_missions (
+        id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        isCompleted INTEGER NOT NULL,
+        PRIMARY KEY (id, date)
+      )
+    ''');
+  }
+
+  Future<List<TransactionModel>> getTransactions() async {
+    final db = await database;
+    final rows = await db.query('transactions', orderBy: 'timestamp DESC');
+    return rows.map((row) => TransactionModel.fromJson(row)).toList();
+  }
+
+  Future<void> upsertTransaction(TransactionModel transaction) async {
+    final db = await database;
+    await db.insert(
+      'transactions',
+      transaction.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteTransaction(String id) async {
+    final db = await database;
+    await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<QuestModel>> getQuests() async {
+    final db = await database;
+    final rows = await db.query('quests', orderBy: 'createdAt DESC');
+    return rows.map((row) => QuestModel.fromJson(row)).toList();
+  }
+
+  Future<void> upsertQuest(QuestModel quest) async {
+    final db = await database;
+    await db.insert(
+      'quests',
+      quest.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteQuest(String id) async {
+    final db = await database;
+    await db.delete('quests', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<CharacterModel?> getCharacter() async {
+    final db = await database;
+    final rows = await db.query('character', limit: 1);
+    if (rows.isEmpty) {
+      return null;
+    }
+    final row = rows.first;
+    final statsRaw = row['stats'] as String?;
+    final stats = statsRaw == null || statsRaw.isEmpty
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(jsonDecode(statsRaw));
+    final data = Map<String, dynamic>.from(row)..['stats'] = stats;
+    return CharacterModel.fromJson(data);
+  }
+
+  Future<void> upsertCharacter(CharacterModel character) async {
+    final db = await database;
+    final data = character.toJson();
+    data['stats'] = jsonEncode(data['stats'] ?? {});
+    await db.insert(
+      'character',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Map<String, bool>> getDailyMissionStates(String dateKey) async {
+    final db = await database;
+    final rows = await db.query(
+      'daily_missions',
+      where: 'date = ?',
+      whereArgs: [dateKey],
+    );
+    final result = <String, bool>{};
+    for (final row in rows) {
+      result[row['id'] as String] = (row['isCompleted'] as int) == 1;
+    }
+    return result;
+  }
+
+  Future<void> upsertDailyMissionState({
+    required String dateKey,
+    required String missionId,
+    required bool isCompleted,
+  }) async {
+    final db = await database;
+    await db.insert(
+      'daily_missions',
+      {
+        'id': missionId,
+        'date': dateKey,
+        'isCompleted': isCompleted ? 1 : 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+}
