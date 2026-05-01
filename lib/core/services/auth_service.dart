@@ -1,9 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:local_auth/local_auth.dart';
+import '../constants/api_constants.dart';
+import 'api_client.dart';
 import 'storage_service.dart';
 
 class AuthService {
   final LocalAuthentication _localAuth = LocalAuthentication();
   final StorageService _storageService = StorageService();
+  final Dio _dio = ApiClient().dio;
 
   Future<bool> isBiometricAvailable() async {
     try {
@@ -36,15 +40,112 @@ class AuthService {
   }
 
   Future<String> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-    
-    String token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-    
-    await _storageService.saveToken(token);
-    await _storageService.saveUserData('email', email);
-    
-    return token;
+    try {
+      final response = await _dio.post(
+        ApiConstants.loginPath,
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      final token = response.data['access_token'] as String? ?? '';
+      if (token.isEmpty) {
+        throw Exception('Login failed');
+      }
+
+      await _storageService.saveToken(token);
+      await _storageService.saveUserData('email', email);
+
+      return token;
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Login failed')
+          : 'Login failed';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> register(String email, String password) async {
+    try {
+      await _dio.post(
+        ApiConstants.registerPath,
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Register failed')
+          : 'Register failed';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> verifyEmail(String token) async {
+    try {
+      await _dio.get(
+        ApiConstants.verifyEmailPath,
+        queryParameters: {'token': token},
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Verification failed')
+          : 'Verification failed';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      await _dio.post(
+        ApiConstants.requestPasswordResetPath,
+        data: {
+          'email': email,
+        },
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Reset request failed')
+          : 'Reset request failed';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> verifyResetCode(String email, String code) async {
+    try {
+      await _dio.post(
+        ApiConstants.verifyResetCodePath,
+        data: {
+          'email': email,
+          'code': code,
+        },
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Verification failed')
+          : 'Verification failed';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> resetPassword(String email, String code, String newPassword) async {
+    try {
+      await _dio.post(
+        ApiConstants.resetPasswordPath,
+        data: {
+          'email': email,
+          'code': code,
+          'new_password': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Reset failed')
+          : 'Reset failed';
+      throw Exception(message);
+    }
   }
 
   Future<void> logout() async {

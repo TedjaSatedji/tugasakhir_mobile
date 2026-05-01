@@ -33,6 +33,12 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Backend
+/backend/.env
+/backend/app.db
+/backend/__pycache__/
+/backend/app/__pycache__/
+
 # Symbolication related
 app.*.symbols
 

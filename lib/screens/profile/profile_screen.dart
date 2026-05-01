@@ -4,8 +4,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/character_provider.dart';
+
 import 'edit_profile_screen.dart';
-import 'vault_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -104,14 +104,7 @@ class ProfileScreen extends StatelessWidget {
                               color: AppColors.xpColor,
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _InfoTile(
-                              label: 'HP',
-                              value: '${character?.hp ?? 100}',
-                              color: AppColors.error,
-                            ),
-                          ),
+
                         ],
                       ),
                     ],
@@ -121,38 +114,9 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            // Stats
-            const Text(
-              'Stats',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 15),
-            Consumer<CharacterProvider>(
-              builder: (context, charProvider, _) {
-                final stats = charProvider.character?.stats ?? {};
-                return Column(
-                  children: [
-                    _StatRow(
-                      label: 'Strength',
-                      value: stats['strength'] ?? 10,
-                    ),
-                    _StatRow(
-                      label: 'Intelligence',
-                      value: stats['intelligence'] ?? 10,
-                    ),
-                    _StatRow(
-                      label: 'Agility',
-                      value: stats['agility'] ?? 10,
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 30),
+
+
+
 
             // Action Buttons
             SizedBox(
@@ -170,25 +134,6 @@ class ProfileScreen extends StatelessWidget {
                 label: const Text(AppStrings.editProfile),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryNeon,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const VaultScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.lock),
-                label: const Text('Akses Vault'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondaryNeon,
                 ),
               ),
             ),

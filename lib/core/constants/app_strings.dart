@@ -11,30 +11,54 @@ class AppStrings {
   static const String password = 'Password';
   static const String confirmPassword = 'Konfirmasi Password';
   static const String forgotPassword = 'Lupa Password?';
+  static const String forgotPasswordTitle = 'Reset Password';
+  static const String verifyCodeTitle = 'Verifikasi Kode';
+  static const String verifyCodeInstruction = 'Masukkan kode yang dikirim ke email.';
+  static const String resetPasswordTitle = 'Buat Password Baru';
+  static const String resetRequestSent = 'Jika email terdaftar, link reset sudah dikirim.';
+  static const String resetRequestSentCode = 'Jika email terdaftar, kode reset sudah dikirim.';
+  static const String resetCode = 'Kode Reset';
+  static const String newPassword = 'Password Baru';
+  static const String confirmNewPassword = 'Konfirmasi Password Baru';
+  static const String resetPassword = 'Reset Password';
+  static const String verifyCode = 'Verifikasi Kode';
+  static const String successResetPasswordMessage = 'Password berhasil direset!';
   static const String login = 'Login';
   static const String register = 'Daftar';
   static const String dontHaveAccount = 'Belum punya akun? ';
   static const String alreadyHaveAccount = 'Sudah punya akun? ';
   static const String useBiometric = 'Gunakan Biometric';
+  static const String quickUnlock = 'Quick Unlock';
+  static const String enableQuickUnlock = 'Aktifkan Quick Unlock';
+  static const String enableBiometricUnlock = 'Aktifkan Biometric';
+  static const String setPinTitle = 'Set PIN';
+  static const String pin = 'PIN';
+  static const String confirmPin = 'Konfirmasi PIN';
+  static const String pinHelper = 'PIN harus 6 digit';
+  static const String pinMismatch = 'PIN tidak cocok';
+  static const String pinSetSuccess = 'PIN berhasil disimpan';
+  static const String unlockTitle = 'Buka Aplikasi';
+  static const String unlock = 'Buka';
+  static const String usePasswordInstead = 'Gunakan Password';
 
   // Home Screen
   static const String homeTitle = 'Beranda';
-  static const String dailyQuest = 'Daily Quest';
-  static const String mainQuest = 'Main Quest';
+  static const String dailyQuest = 'Misi Harian';
+  static const String mainQuest = 'Misi Utama';
   static const String totalSavings = 'Total Tabungan';
   static const String level = 'Level';
   static const String experience = 'XP';
 
   // Quest
-  static const String questTitle = 'Quest';
-  static const String createQuest = 'Buat Quest Baru';
-  static const String questName = 'Nama Quest';
+  static const String questTitle = 'Misi';
+  static const String createQuest = 'Buat Misi Baru';
+  static const String questName = 'Nama Misi';
   static const String questDescription = 'Deskripsi';
   static const String questReward = 'Reward (XP)';
   static const String questDeadline = 'Deadline';
   static const String questCategory = 'Kategori';
-  static const String completeQuest = 'Selesaikan Quest';
-  static const String questCompleted = 'Quest Selesai!';
+  static const String completeQuest = 'Selesaikan Misi';
+  static const String questCompleted = 'Misi Selesai!';
 
   // Wallet
   static const String walletTitle = 'Dompet';
@@ -112,6 +136,6 @@ class AppStrings {
   // Success Messages
   static const String successLoginMessage = 'Login berhasil!';
   static const String successRegisterMessage = 'Pendaftaran berhasil!';
-  static const String successCreateQuestMessage = 'Quest berhasil dibuat!';
+  static const String successCreateQuestMessage = 'Misi berhasil dibuat!';
   static const String successAddTransactionMessage = 'Transaksi berhasil ditambahkan!';
 }

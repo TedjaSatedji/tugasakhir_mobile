@@ -4,6 +4,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../models/notification_model.dart';
 
 class CreateQuestScreen extends StatefulWidget {
   const CreateQuestScreen({super.key});
@@ -15,27 +17,24 @@ class CreateQuestScreen extends StatefulWidget {
 class _CreateQuestScreenState extends State<CreateQuestScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _xpRewardController;
-  late TextEditingController _moneyRewardController;
+  late TextEditingController _targetAmountController;
 
-  QuestCategory _selectedCategory = QuestCategory.health;
-  DateTime _selectedDeadline = DateTime.now().add(const Duration(days: 7));
+  QuestCategory _selectedCategory = QuestCategory.gadget;
+  DateTime _selectedDeadline = DateTime.now().add(const Duration(days: 30));
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
-    _xpRewardController = TextEditingController(text: '100');
-    _moneyRewardController = TextEditingController(text: '0');
+    _targetAmountController = TextEditingController(text: '0');
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _xpRewardController.dispose();
-    _moneyRewardController.dispose();
+    _targetAmountController.dispose();
     super.dispose();
   }
 
@@ -43,7 +42,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.createQuest),
+        title: const Text('Buat Target Tabungan'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -54,9 +53,71 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header Banner
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryNeon.withOpacity(0.2),
+                    AppColors.primaryNeon.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: AppColors.primaryNeon.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryNeon.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.flag_circle,
+                      color: AppColors.primaryNeon,
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Rencanakan Masa Depan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Tentukan target tabunganmu sekarang!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+
             // Title
             const Text(
-              AppStrings.questName,
+              'Nama Target',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
@@ -66,7 +127,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                hintText: 'Masukkan nama quest',
+                hintText: 'Misal: Beli Laptop Baru',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -83,7 +144,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
 
             // Description
             const Text(
-              AppStrings.questDescription,
+              'Deskripsi',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
@@ -94,7 +155,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'Masukkan deskripsi quest',
+                hintText: 'Catatan tambahan...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -109,9 +170,9 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
             ),
             const SizedBox(height: 20),
 
-            // XP Reward
+            // Target Amount
             const Text(
-              'XP Reward',
+              'Target Tabungan (Rp)',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
@@ -119,38 +180,10 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: _xpRewardController,
+              controller: _targetAmountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: '100',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryNeon,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Money Reward
-            const Text(
-              'Uang Reward (Rp)',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _moneyRewardController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: '0',
+                hintText: 'Misal: 5000000',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -167,7 +200,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
 
             // Category
             const Text(
-              AppStrings.questCategory,
+              'Kategori',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
@@ -198,7 +231,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
 
             // Deadline
             const Text(
-              AppStrings.questDeadline,
+              'Tenggat Waktu (Deadline)',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
@@ -211,7 +244,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                   context: context,
                   initialDate: _selectedDeadline,
                   firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 3650)),
                 );
                 if (picked != null) {
                   setState(() {
@@ -258,7 +291,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                 onPressed: () {
                   if (_titleController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Judul quest harus diisi')),
+                      const SnackBar(content: Text('Nama target harus diisi')),
                     );
                     return;
                   }
@@ -266,21 +299,28 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                   context.read<QuestProvider>().createQuest(
                     _titleController.text,
                     _descriptionController.text,
-                    int.tryParse(_xpRewardController.text) ?? 100,
-                    double.tryParse(_moneyRewardController.text) ?? 0,
+                    double.tryParse(_targetAmountController.text) ?? 0,
                     _selectedCategory,
                     _selectedDeadline,
+                  );
+
+                  context.read<NotificationProvider>().addNotification(
+                    NotificationModel(
+                      title: 'Target Baru Ditambahkan!',
+                      message: 'Misi baru: ${_titleController.text}',
+                      type: NotificationType.system,
+                    ),
                   );
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(AppStrings.successCreateQuestMessage),
+                      content: Text('Target Tabungan berhasil dibuat!'),
                     ),
                   );
                 },
                 child: const Text(
-                  AppStrings.createQuest,
+                  'Buat Target',
                   style: TextStyle(
                     color: AppColors.darkBg,
                     fontWeight: FontWeight.bold,

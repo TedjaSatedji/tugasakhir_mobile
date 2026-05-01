@@ -1,5 +1,5 @@
 enum QuestStatus { active, completed, failed }
-enum QuestCategory { health, study, finance, hobby, work }
+enum QuestCategory { gadget, travel, emergency, investment, other }
 
 class QuestModel {
   final String id;
@@ -7,12 +7,13 @@ class QuestModel {
   final String title;
   final String description;
   final int xpReward;
-  final double moneyReward;
+  final double targetAmount; // Formerly moneyReward
+  final double currentSavedAmount; // New field
   final QuestCategory category;
   final QuestStatus status;
   final DateTime deadline;
   final DateTime createdAt;
-  final int progressPercentage;
+  final int progressPercentage; // Kept for legacy/UI convenience
 
   QuestModel({
     required this.id,
@@ -20,7 +21,8 @@ class QuestModel {
     required this.title,
     required this.description,
     required this.xpReward,
-    required this.moneyReward,
+    required this.targetAmount,
+    required this.currentSavedAmount,
     required this.category,
     required this.status,
     required this.deadline,
@@ -34,8 +36,9 @@ class QuestModel {
       userId: json['userId'],
       title: json['title'],
       description: json['description'] ?? '',
-      xpReward: json['xpReward'] ?? 100,
-      moneyReward: (json['moneyReward'] ?? 0).toDouble(),
+      xpReward: json['xpReward'] ?? 500, // Fixed XP reward for completing a goal
+      targetAmount: (json['targetAmount'] ?? json['moneyReward'] ?? 0).toDouble(), // Support legacy key
+      currentSavedAmount: (json['currentSavedAmount'] ?? 0).toDouble(),
       category: QuestCategory.values[json['category'] ?? 0],
       status: QuestStatus.values[json['status'] ?? 0],
       deadline: DateTime.parse(json['deadline'] ?? DateTime.now().toIso8601String()),
@@ -51,7 +54,8 @@ class QuestModel {
       'title': title,
       'description': description,
       'xpReward': xpReward,
-      'moneyReward': moneyReward,
+      'targetAmount': targetAmount,
+      'currentSavedAmount': currentSavedAmount,
       'category': category.index,
       'status': status.index,
       'deadline': deadline.toIso8601String(),
@@ -63,6 +67,7 @@ class QuestModel {
   QuestModel copyWith({
     int? progressPercentage,
     QuestStatus? status,
+    double? currentSavedAmount,
   }) {
     return QuestModel(
       id: id,
@@ -70,7 +75,8 @@ class QuestModel {
       title: title,
       description: description,
       xpReward: xpReward,
-      moneyReward: moneyReward,
+      targetAmount: targetAmount,
+      currentSavedAmount: currentSavedAmount ?? this.currentSavedAmount,
       category: category,
       status: status ?? this.status,
       deadline: deadline,

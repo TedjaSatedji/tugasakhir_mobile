@@ -2,121 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/utils/color_utils.dart';
 import '../../providers/auth_provider.dart';
-import 'forgot_password_screen.dart';
-import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({
+    super.key,
+    required this.email,
+    required this.code,
+  });
+
+  final String email;
+  final String code;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  late TextEditingController _emailController;
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late TextEditingController _passwordController;
+  late TextEditingController _confirmPasswordController;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController();
     _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(AppStrings.resetPasswordTitle),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                // Logo
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                      AppColors.primaryNeon.withOpacityValue(0.3),
-                      AppColors.secondaryNeon.withOpacityValue(0.3),
-                    ],
-                  ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'QUESTIFY',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryNeon,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 10),
-                const Text(
-                  AppStrings.appTagline,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 40),
-
-                // Email Field
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    hintText: AppStrings.email,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.email,
-                        color: AppColors.primaryNeon),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                  style: const TextStyle(color: AppColors.textPrimary),
-                ),
-                const SizedBox(height: 20),
-
-                // Password Field
+                const SizedBox(height: 10),
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    hintText: AppStrings.password,
+                    hintText: AppStrings.newPassword,
                     hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.lock,
-                        color: AppColors.primaryNeon),
+                    prefixIcon: const Icon(Icons.lock, color: AppColors.primaryNeon),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
                         color: AppColors.primaryNeon,
                       ),
                       onPressed: () {
@@ -141,37 +87,47 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   style: const TextStyle(color: AppColors.textPrimary),
                 ),
-                const SizedBox(height: 12),
-
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ForgotPasswordScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      AppStrings.forgotPassword,
-                      style: TextStyle(
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    hintText: AppStrings.confirmNewPassword,
+                    hintStyle: const TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.lock, color: AppColors.primaryNeon),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: AppColors.primaryNeon,
-                        fontSize: 12,
-                        fontFamily: 'Poppins',
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryNeon,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryNeon,
+                        width: 1.5,
                       ),
                     ),
                   ),
+                  style: const TextStyle(color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 30),
-
-                // Login Button
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, _) {
                     return SizedBox(
-                      width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -183,8 +139,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                                if (_emailController.text.isEmpty ||
-                                    _passwordController.text.isEmpty) {
+                                if (_passwordController.text.isEmpty ||
+                                    _confirmPasswordController.text.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(AppStrings.errorEmptyField),
@@ -193,8 +149,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   return;
                                 }
 
-                                final success = await authProvider.login(
-                                  _emailController.text,
+                                if (_passwordController.text !=
+                                    _confirmPasswordController.text) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(AppStrings.errorPasswordMismatch),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final success = await authProvider.resetPassword(
+                                  widget.email,
+                                  widget.code,
                                   _passwordController.text,
                                 );
 
@@ -205,8 +172,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text(AppStrings.successLoginMessage),
+                                      content: Text(AppStrings.successResetPasswordMessage),
                                     ),
+                                  );
+
+                                  Navigator.popUntil(
+                                    context,
+                                    (route) => route.isFirst,
                                   );
                                 } else {
                                   final message = authProvider.errorMessage ??
@@ -229,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : const Text(
-                                AppStrings.login,
+                                AppStrings.resetPassword,
                                 style: TextStyle(
                                   color: AppColors.darkBg,
                                   fontWeight: FontWeight.bold,
@@ -240,39 +212,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
-                ),
-                const SizedBox(height: 20),
-
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      AppStrings.dontHaveAccount,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        AppStrings.register,
-                        style: TextStyle(
-                          color: AppColors.primaryNeon,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

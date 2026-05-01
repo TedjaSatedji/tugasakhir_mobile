@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -168,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_emailController.text.isEmpty ||
                           _passwordController.text.isEmpty ||
                           _confirmPasswordController.text.isEmpty) {
@@ -190,13 +192,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return;
                       }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(AppStrings.successRegisterMessage),
-                        ),
-                      );
+                      final success = await context.read<AuthProvider>().register(
+                            _emailController.text,
+                            _passwordController.text,
+                          );
 
-                      Navigator.pop(context);
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Pendaftaran berhasil. Cek email untuk verifikasi.',
+                            ),
+                          ),
+                        );
+
+                        Navigator.pop(context);
+                      } else {
+                        final message = context.read<AuthProvider>().errorMessage ??
+                            AppStrings.errorNetworkError;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       AppStrings.register,

@@ -20,223 +20,291 @@ class QuestDetailScreen extends StatefulWidget {
 }
 
 class _QuestDetailScreenState extends State<QuestDetailScreen> {
-  late int _currentProgress;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentProgress = widget.quest.progressPercentage;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.questTitle),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(
-              widget.quest.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 10),
+    // To make sure we have the latest state of the quest
+    return Consumer<QuestProvider>(
+      builder: (context, questProvider, _) {
+        final currentQuest = questProvider.quests.firstWhere(
+          (q) => q.id == widget.quest.id,
+          orElse: () => widget.quest,
+        );
 
-            // Status Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: _getStatusColor().withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                _getStatusText(),
-                style: TextStyle(
-                  color: _getStatusColor(),
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Poppins',
-                ),
-              ),
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Detail Target'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(height: 20),
-
-            // Description
-            const Text(
-              'Deskripsi',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.quest.description,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Rewards
-            const Text(
-              'Reward',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 15),
-            Row(
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete, color: AppColors.error),
+                onPressed: () {
+                  questProvider.deleteQuest(currentQuest.id);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Target dihapus')),
+                  );
+                },
+              )
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _RewardCard(
-                    icon: Icons.star,
-                    label: 'XP',
-                    value: '${widget.quest.xpReward}',
-                    color: AppColors.xpColor,
+                // Title
+                Text(
+                  currentQuest.title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
                   ),
                 ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: _RewardCard(
-                    icon: Icons.attach_money,
-                    label: 'Rupiah',
-                    value: 'Rp${widget.quest.moneyReward.toStringAsFixed(0)}',
-                    color: AppColors.success,
+                const SizedBox(height: 10),
+
+                // Status Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(currentQuest.status).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _getStatusText(currentQuest.status),
+                    style: TextStyle(
+                      color: _getStatusColor(currentQuest.status),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
-            // Deadline
-            const Text(
-              'Deadline',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              TimeConverter.formatDateTime(widget.quest.deadline),
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Sisa waktu: ${TimeConverter.getTimeUntil(widget.quest.deadline)}',
-              style: const TextStyle(
-                color: AppColors.warning,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 30),
+                // Description
+                const Text(
+                  'Deskripsi',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  currentQuest.description.isEmpty ? 'Tidak ada deskripsi' : currentQuest.description,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 30),
 
-            // Progress
-            const Text(
-              'Progress',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 15),
-            Column(
-              children: [
+                // Rewards & Target
+                const Text(
+                  'Detail Finansial',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 15),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Progres: $_currentProgress%',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
+                    Expanded(
+                      child: _RewardCard(
+                        icon: Icons.track_changes,
+                        label: 'Target (Rp)',
+                        value: currentQuest.targetAmount.toStringAsFixed(0),
+                        color: AppColors.primaryNeon,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      color: AppColors.primaryNeon,
-                      onPressed: () {
-                        if (_currentProgress < 100) {
-                          setState(() {
-                            _currentProgress += 10;
-                          });
-                          context.read<QuestProvider>().updateQuestProgress(
-                            widget.quest.id,
-                            _currentProgress,
-                          );
-                        }
-                      },
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _RewardCard(
+                        icon: Icons.star,
+                        label: 'Reward XP',
+                        value: '${currentQuest.xpReward}',
+                        color: AppColors.xpColor,
+                      ),
                     ),
                   ],
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: _currentProgress / 100,
-                    minHeight: 10,
-                    backgroundColor: AppColors.darkCard,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.primaryNeon,
-                    ),
+                const SizedBox(height: 30),
+
+                // Deadline
+                const Text(
+                  'Tenggat Waktu',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
                   ),
                 ),
+                const SizedBox(height: 10),
+                Text(
+                  TimeConverter.formatDateTime(currentQuest.deadline),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Sisa waktu: ${TimeConverter.getTimeUntil(currentQuest.deadline)}',
+                  style: const TextStyle(
+                    color: AppColors.warning,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Progress
+                const Text(
+                  'Progres Tabungan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Rp${currentQuest.currentSavedAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.success,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Rp${currentQuest.targetAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: currentQuest.targetAmount > 0 ? (currentQuest.currentSavedAmount / currentQuest.targetAmount).clamp(0.0, 1.0) : 0,
+                        minHeight: 12,
+                        backgroundColor: AppColors.darkCard,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.success,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+
+                // Action Buttons
+                if (currentQuest.status == QuestStatus.active)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _showAddFundsDialog(context, currentQuest);
+                        },
+                        icon: const Icon(Icons.add_card),
+                        label: const Text('Tambah Dana'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryNeon,
+                          foregroundColor: AppColors.darkBg,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
-            const SizedBox(height: 30),
+          ),
+        );
+      },
+    );
+  }
 
-            // Action Buttons
-            if (widget.quest.status == QuestStatus.active)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      context.read<QuestProvider>().completeQuest(widget.quest.id);
-                      context.read<CharacterProvider>().addXP(widget.quest.xpReward);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(AppStrings.successCreateQuestMessage),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text(AppStrings.completeQuest),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
-          ],
+  void _showAddFundsDialog(BuildContext context, QuestModel quest) {
+    final TextEditingController amountController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        title: const Text(
+          'Tambah Dana',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontFamily: 'Poppins',
+          ),
         ),
+        content: TextField(
+          controller: amountController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'Masukkan jumlah (Rp)',
+            hintStyle: const TextStyle(color: AppColors.textSecondary),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primaryNeon),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primaryNeon),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final amount = double.tryParse(amountController.text) ?? 0;
+              if (amount > 0) {
+                context.read<QuestProvider>().addFundsToGoal(quest.id, amount);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Dana berhasil ditambahkan!')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryNeon,
+            ),
+            child: const Text(
+              'Simpan',
+              style: TextStyle(color: AppColors.darkBg),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Color _getStatusColor() {
-    switch (widget.quest.status) {
+  Color _getStatusColor(QuestStatus status) {
+    switch (status) {
       case QuestStatus.active:
         return AppColors.info;
       case QuestStatus.completed:
@@ -246,14 +314,14 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
     }
   }
 
-  String _getStatusText() {
-    switch (widget.quest.status) {
+  String _getStatusText(QuestStatus status) {
+    switch (status) {
       case QuestStatus.active:
-        return 'Active';
+        return 'Aktif';
       case QuestStatus.completed:
-        return 'Completed';
+        return 'Tercapai';
       case QuestStatus.failed:
-        return 'Failed';
+        return 'Gagal';
     }
   }
 }
@@ -301,6 +369,7 @@ class _RewardCard extends StatelessWidget {
               color: color,
               fontFamily: 'Poppins',
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

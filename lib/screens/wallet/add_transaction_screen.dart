@@ -4,6 +4,10 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/character_provider.dart';
+import '../../providers/quest_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../models/notification_model.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -211,6 +215,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     _descriptionController.text.isEmpty
                         ? 'Transaksi'
                         : _descriptionController.text,
+                  );
+
+                  // Reward XP for logging transaction
+                  context.read<CharacterProvider>().addXP(10);
+                  // Complete daily mission
+                  context.read<QuestProvider>().completeDailyMission('mission_1');
+
+                  // Show Notification
+                  context.read<NotificationProvider>().addNotification(
+                    NotificationModel(
+                      title: 'Transaksi Berhasil',
+                      message: 'Kamu mendapatkan +10 XP!',
+                      type: NotificationType.transaction,
+                    ),
                   );
 
                   Navigator.pop(context);

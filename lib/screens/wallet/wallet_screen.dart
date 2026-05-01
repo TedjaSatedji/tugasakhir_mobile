@@ -5,9 +5,26 @@ import '../../core/constants/app_strings.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import '../tools/currency_converter_screen.dart';
+import '../tools/time_converter_screen.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
+
+  @override
+  State<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends State<WalletScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  TransactionType? _selectedTypeFilter;
+  ExpenseCategory? _selectedCategoryFilter;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,17 +33,36 @@ class WalletScreen extends StatelessWidget {
         title: const Text(AppStrings.walletTitle),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.currency_exchange, color: AppColors.primaryNeon),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const AddTransactionScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const CurrencyConverterScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.public, color: AppColors.secondaryNeon),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TimeConverterScreen()),
               );
             },
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddTransactionScreen(),
+            ),
+          );
+        },
+        backgroundColor: AppColors.primaryNeon,
+        child: const Icon(Icons.add, color: AppColors.darkBg),
       ),
       body: Consumer<TransactionProvider>(
         builder: (context, transProvider, _) {
@@ -100,7 +136,7 @@ class WalletScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
 
-                // Transactions List
+                // Search and Filter Section
                 const Text(
                   'Riwayat Transaksi',
                   style: TextStyle(
@@ -110,29 +146,121 @@ class WalletScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 15),
-                if (transProvider.transactions.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text(
-                        'Belum ada transaksi',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
+                TextField(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Cari transaksi...',
+                    hintStyle: const TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.primaryNeon),
+                    filled: true,
+                    fillColor: AppColors.darkCard,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                    ),
+                  ),
+                  style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins'),
+                ),
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        label: const Text('Semua'),
+                        selected: _selectedTypeFilter == null,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedTypeFilter = null;
+                          });
+                        },
+                        selectedColor: AppColors.primaryNeon.withOpacity(0.3),
+                        checkmarkColor: AppColors.primaryNeon,
+                        labelStyle: TextStyle(
+                          color: _selectedTypeFilter == null ? AppColors.primaryNeon : AppColors.textSecondary,
                           fontFamily: 'Poppins',
                         ),
+                        backgroundColor: AppColors.darkCard,
                       ),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: transProvider.transactions.length,
-                    itemBuilder: (context, index) {
-                      final transaction = transProvider.transactions[index];
-                      return _TransactionTile(transaction: transaction);
-                    },
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Pemasukan'),
+                        selected: _selectedTypeFilter == TransactionType.income,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedTypeFilter = TransactionType.income;
+                          });
+                        },
+                        selectedColor: AppColors.success.withOpacity(0.3),
+                        checkmarkColor: AppColors.success,
+                        labelStyle: TextStyle(
+                          color: _selectedTypeFilter == TransactionType.income ? AppColors.success : AppColors.textSecondary,
+                          fontFamily: 'Poppins',
+                        ),
+                        backgroundColor: AppColors.darkCard,
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Pengeluaran'),
+                        selected: _selectedTypeFilter == TransactionType.expense,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedTypeFilter = TransactionType.expense;
+                          });
+                        },
+                        selectedColor: AppColors.error.withOpacity(0.3),
+                        checkmarkColor: AppColors.error,
+                        labelStyle: TextStyle(
+                          color: _selectedTypeFilter == TransactionType.expense ? AppColors.error : AppColors.textSecondary,
+                          fontFamily: 'Poppins',
+                        ),
+                        backgroundColor: AppColors.darkCard,
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(height: 15),
+                Builder(
+                  builder: (context) {
+                    final query = _searchController.text.toLowerCase();
+                    var filteredTransactions = transProvider.transactions.where((t) {
+                      final matchesQuery = t.description.toLowerCase().contains(query);
+                      final matchesType = _selectedTypeFilter == null || t.type == _selectedTypeFilter;
+                      final matchesCategory = _selectedCategoryFilter == null || t.category == _selectedCategoryFilter;
+                      return matchesQuery && matchesType && matchesCategory;
+                    }).toList();
+
+                    if (filteredTransactions.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Text(
+                            'Belum ada transaksi',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredTransactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = filteredTransactions[index];
+                        return _TransactionTile(transaction: transaction);
+                      },
+                    );
+                  }
+                ),
               ],
             ),
           );

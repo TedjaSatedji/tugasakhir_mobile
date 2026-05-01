@@ -6,10 +6,12 @@ import '../../models/quest_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/transaction_provider.dart';
-import '../quest/quest_list_screen.dart';
 import '../wallet/wallet_screen.dart';
+import '../quest/quest_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
+import '../../providers/notification_provider.dart';
+import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,6 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.darkBg,
+        selectedItemColor: AppColors.primaryNeon,
+        unselectedItemColor: AppColors.textSecondary,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
@@ -52,8 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: AppStrings.homeTitle,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: AppStrings.questTitle,
+            icon: Icon(Icons.track_changes),
+            label: 'Target',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.wallet),
@@ -81,57 +87,141 @@ class _HomeBody extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.homeTitle),
+        actions: [
+          Consumer<NotificationProvider>(
+            builder: (context, notifProvider, _) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (notifProvider.unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          notifProvider.unreadCount > 9 ? '9+' : '${notifProvider.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 10),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome Card
+            // Welcome & Gamification Banner
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primaryNeon.withOpacity(0.2),
-                    AppColors.secondaryNeon.withOpacity(0.2),
-                  ],
-                ),
+                color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: AppColors.primaryNeon.withOpacity(0.3),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selamat datang kembali!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Consumer<CharacterProvider>(
-                    builder: (context, charProvider, _) {
-                      final char = charProvider.character;
-                      return Text(
-                        char?.name ?? 'Hero',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.primaryNeon,
-                          fontFamily: 'Poppins',
+              child: Consumer<CharacterProvider>(
+                builder: (context, charProvider, _) {
+                  final char = charProvider.character;
+                  return Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryNeon.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
-                      );
-                    },
-                  ),
-                ],
+                        child: const Icon(
+                          Icons.person,
+                          color: AppColors.primaryNeon,
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Halo, ${char?.name ?? 'Hero'}!',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              children: [
+                                Text(
+                                  'Level ${char?.level ?? 1}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.levelUpColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: LinearProgressIndicator(
+                                      value: ((char?.totalXP ?? 0) % 100) / 100, // Example progress logic
+                                      backgroundColor: AppColors.textSecondary.withOpacity(0.2),
+                                      color: AppColors.xpColor,
+                                      minHeight: 6,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '${char?.totalXP ?? 0} XP',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.xpColor,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 30),
 
-            // Stats
+            // Financial Overview
             const Text(
-              'Statistik',
+              'Ringkasan Keuangan',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -139,43 +229,72 @@ class _HomeBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 15),
-            Consumer2<CharacterProvider, TransactionProvider>(
-              builder: (context, charProvider, transProvider, _) {
-                final char = charProvider.character;
-                return Row(
-                  children: [
-                    Expanded(
-                      child: _StatCard(
-                        title: AppStrings.level,
-                        value: '${char?.level ?? 1}',
-                        color: AppColors.levelUpColor,
-                      ),
+            Consumer<TransactionProvider>(
+              builder: (context, transProvider, _) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primaryNeon.withOpacity(0.2),
+                        AppColors.secondaryNeon.withOpacity(0.2),
+                      ],
                     ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _StatCard(
-                        title: AppStrings.experience,
-                        value: '${char?.totalXP ?? 0}',
-                        color: AppColors.xpColor,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        AppStrings.totalSavings,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _StatCard(
-                        title: AppStrings.totalSavings,
-                        value: 'Rp${transProvider.balance.toStringAsFixed(0)}',
-                        color: AppColors.success,
+                      const SizedBox(height: 5),
+                      Text(
+                        'Rp${transProvider.balance.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNeon,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MiniStatCard(
+                              title: AppStrings.income,
+                              amount: 'Rp${transProvider.totalIncome.toStringAsFixed(0)}',
+                              icon: Icons.arrow_downward,
+                              color: AppColors.success,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _MiniStatCard(
+                              title: AppStrings.expense,
+                              amount: 'Rp${transProvider.totalExpense.toStringAsFixed(0)}',
+                              icon: Icons.arrow_upward,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
             const SizedBox(height: 30),
 
-            // Daily Quest
+            // Daily Missions
             const Text(
-              AppStrings.dailyQuest,
+              'Misi Harian',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -185,17 +304,14 @@ class _HomeBody extends StatelessWidget {
             const SizedBox(height: 15),
             Consumer<QuestProvider>(
               builder: (context, questProvider, _) {
-                final dailyQuests = questProvider.quests
-                    .where((q) => q.status == QuestStatus.active)
-                    .take(3)
-                    .toList();
+                final dailyMissions = questProvider.dailyMissions;
 
-                if (dailyQuests.isEmpty) {
+                if (dailyMissions.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Text(
-                        'Belum ada quest hari ini',
+                        'Belum ada misi hari ini',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontFamily: 'Poppins',
@@ -206,8 +322,8 @@ class _HomeBody extends StatelessWidget {
                 }
 
                 return Column(
-                  children: dailyQuests
-                      .map((quest) => _QuestTile(quest: quest))
+                  children: dailyMissions
+                      .map((mission) => _DailyMissionTile(mission: mission))
                       .toList(),
                 );
               },
@@ -219,46 +335,54 @@ class _HomeBody extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _MiniStatCard extends StatelessWidget {
   final String title;
-  final String value;
+  final String amount;
+  final IconData icon;
   final Color color;
 
-  const _StatCard({
+  const _MiniStatCard({
     required this.title,
-    required this.value,
+    required this.amount,
+    required this.icon,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-        ),
+        color: AppColors.darkBg.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontFamily: 'Poppins',
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-              fontFamily: 'Poppins',
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                Text(
+                  amount,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontFamily: 'Poppins',
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -267,10 +391,10 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _QuestTile extends StatelessWidget {
-  final QuestModel quest;
+class _DailyMissionTile extends StatelessWidget {
+  final DailyMission mission;
 
-  const _QuestTile({required this.quest});
+  const _DailyMissionTile({required this.mission});
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +405,9 @@ class _QuestTile extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primaryNeon.withOpacity(0.3),
+          color: mission.isCompleted 
+              ? AppColors.success.withOpacity(0.5) 
+              : AppColors.primaryNeon.withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -291,15 +417,17 @@ class _QuestTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  quest.title,
-                  style: const TextStyle(
+                  mission.title,
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
+                    decoration: mission.isCompleted ? TextDecoration.lineThrough : null,
+                    color: mission.isCompleted ? AppColors.textSecondary : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '+${quest.xpReward} XP',
+                  '+${mission.xpReward} XP',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.xpColor,
@@ -309,19 +437,10 @@ class _QuestTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.check_circle_outline),
-            color: AppColors.success,
-            onPressed: () {
-              context.read<QuestProvider>().completeQuest(quest.id);
-              context.read<CharacterProvider>().addXP(quest.xpReward);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(AppStrings.questCompleted),
-                ),
-              );
-            },
-          ),
+          if (mission.isCompleted)
+            const Icon(Icons.check_circle, color: AppColors.success)
+          else
+            const Icon(Icons.circle_outlined, color: AppColors.textSecondary),
         ],
       ),
     );
