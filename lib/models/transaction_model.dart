@@ -20,6 +20,9 @@ class TransactionModel {
   final DateTime timestamp;
   final String? receiptImageUrl;
   final String? detectedCategory;
+  final double? latitude;
+  final double? longitude;
+  final String? locationName;
 
   TransactionModel({
     required this.id,
@@ -31,6 +34,9 @@ class TransactionModel {
     required this.timestamp,
     this.receiptImageUrl,
     this.detectedCategory,
+    this.latitude,
+    this.longitude,
+    this.locationName,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -44,8 +50,11 @@ class TransactionModel {
       amount: (json['amount'] ?? 0).toDouble(),
       description: json['description'] ?? '',
       timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
-      receiptImageUrl: json['receiptImageUrl'],
-      detectedCategory: json['detectedCategory'],
+      receiptImageUrl: json['receiptImageUrl'] as String?,
+      detectedCategory: json['detectedCategory'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      locationName: json['locationName'] as String?,
     );
   }
 
@@ -60,6 +69,9 @@ class TransactionModel {
       'timestamp': timestamp.toIso8601String(),
       'receiptImageUrl': receiptImageUrl,
       'detectedCategory': detectedCategory,
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationName': locationName,
     };
   }
 }

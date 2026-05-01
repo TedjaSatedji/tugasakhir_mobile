@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/character_model.dart';
 import 'package:uuid/uuid.dart';
+import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
 
 class CharacterProvider extends ChangeNotifier {
@@ -35,7 +36,7 @@ class CharacterProvider extends ChangeNotifier {
   CharacterModel _createDefaultCharacter() {
     return CharacterModel(
       id: const Uuid().v4(),
-      userId: '1',
+      userId: StorageService.currentUserId,
       name: 'Hero',
       characterClass: CharacterClass.warrior,
       level: 1,
@@ -62,7 +63,7 @@ class CharacterProvider extends ChangeNotifier {
 
     _character = CharacterModel(
       id: const Uuid().v4(),
-      userId: '1',
+      userId: StorageService.currentUserId,
       name: name,
       characterClass: characterClass,
       level: 1,

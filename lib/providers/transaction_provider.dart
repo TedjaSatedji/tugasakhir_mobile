@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import 'package:uuid/uuid.dart';
+import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
 
 class TransactionProvider extends ChangeNotifier {
@@ -43,8 +44,12 @@ class TransactionProvider extends ChangeNotifier {
     ExpenseCategory? category,
     double amount,
     String description,
-    String? receiptImageUrl,
-  ) async {
+    String? receiptImageUrl, {
+    DateTime? timestamp,
+    double? latitude,
+    double? longitude,
+    String? locationName,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -52,13 +57,16 @@ class TransactionProvider extends ChangeNotifier {
 
     final transaction = TransactionModel(
       id: const Uuid().v4(),
-      userId: '1',
+      userId: StorageService.currentUserId,
       type: type,
       category: category,
       amount: amount,
       description: description,
-      timestamp: DateTime.now(),
+      timestamp: timestamp ?? DateTime.now(),
       receiptImageUrl: receiptImageUrl,
+      latitude: latitude,
+      longitude: longitude,
+      locationName: locationName,
     );
 
     _transactions.add(transaction);

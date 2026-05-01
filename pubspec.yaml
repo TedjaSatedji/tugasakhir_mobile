@@ -30,6 +30,9 @@ dependencies:
   
   # Location Services
   geolocator: ^11.0.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.0
+  geocoding: ^3.0.0
   
   # Biometric Authentication
   local_auth: ^2.2.0

@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/location_service.dart';
 import '../../core/services/receipt_ai_service.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
@@ -26,10 +28,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   TransactionType _selectedType = TransactionType.expense;
   ExpenseCategory _selectedCategory = ExpenseCategory.food;
+  DateTime _selectedDate = DateTime.now();
   final ImagePicker _imagePicker = ImagePicker();
   String? _receiptImagePath;
   bool _isScanning = false;
+  bool _isLocating = false;
+  double? _latitude;
+  double? _longitude;
+  String? _locationName;
   final ReceiptAiService _receiptAiService = ReceiptAiService();
+  final LocationService _locationService = LocationService();
 
   @override
   void initState() {
@@ -157,6 +165,42 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Date Picker
+            const Text(
+              'Tanggal',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primaryNeon,
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today, color: AppColors.primaryNeon, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      DateFormat('dd MMMM yyyy').format(_selectedDate),
+                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
             const Text(
               'Foto (Opsional)',
               style: TextStyle(
@@ -257,6 +301,67 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               const SizedBox(height: 20),
             ],
 
+            // Location Button
+            const Text(
+              'Lokasi (Opsional)',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (_locationName != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.success, width: 1.5),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, color: AppColors.success, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _locationName!,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                      onPressed: () => setState(() {
+                        _latitude = null;
+                        _longitude = null;
+                        _locationName = null;
+                      }),
+                    ),
+                  ],
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _isLocating ? null : _captureLocation,
+                icon: _isLocating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location),
+                label: Text(_isLocating ? 'Mendapatkan lokasi...' : 'Tambah Lokasi'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryNeon,
+                  side: const BorderSide(color: AppColors.primaryNeon),
+                  minimumSize: const Size(double.infinity, 44),
+                ),
+              ),
+            const SizedBox(height: 20),
+
             // Save Button
             SizedBox(
               width: double.infinity,
@@ -291,6 +396,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         ? 'Transaksi'
                         : _descriptionController.text,
                     _receiptImagePath,
+                    timestamp: _selectedDate,
+                    latitude: _latitude,
+                    longitude: _longitude,
+                    locationName: _locationName,
                   );
 
                     await context.read<CharacterProvider>().addXpForAmount(amount);
@@ -416,6 +525,70 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     }
     return null;
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.primaryNeon,
+              onPrimary: AppColors.darkBg,
+              surface: AppColors.darkCard,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _captureLocation() async {
+    setState(() => _isLocating = true);
+
+    try {
+      final position = await _locationService.getCurrentPosition();
+      if (position == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tidak dapat mendapatkan lokasi')),
+          );
+        }
+        return;
+      }
+
+      final name = await _locationService.getPlaceName(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (mounted) {
+        setState(() {
+          _latitude = position.latitude;
+          _longitude = position.longitude;
+          _locationName = name;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mendapatkan lokasi: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
   }
 }
 

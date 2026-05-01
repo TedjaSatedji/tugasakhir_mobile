@@ -244,67 +244,126 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
 
   void _showAddFundsDialog(BuildContext context, QuestModel quest) {
     final TextEditingController amountController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
-        title: const Text(
-          'Tambah Dana',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontFamily: 'Poppins',
-          ),
-        ),
-        content: TextField(
-          controller: amountController,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Masukkan jumlah (Rp)',
-            hintStyle: const TextStyle(color: AppColors.textSecondary),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primaryNeon),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primaryNeon),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.darkCard,
+          title: const Text(
+            'Tambah Dana',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontFamily: 'Poppins',
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: AppColors.error),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Masukkan jumlah (Rp)',
+                  hintStyle: TextStyle(color: AppColors.textSecondary),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.primaryNeon),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.primaryNeon),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.dark(
+                            primary: AppColors.primaryNeon,
+                            onPrimary: AppColors.darkBg,
+                            surface: AppColors.darkCard,
+                            onSurface: AppColors.textPrimary,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setDialogState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primaryNeon, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: AppColors.primaryNeon, size: 18),
+                      const SizedBox(width: 10),
+                      Text(
+                        '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(amountController.text) ?? 0;
-              if (amount > 0) {
-                final result = await context
-                    .read<QuestProvider>()
-                    .addFundsToGoal(quest.id, amount);
-                await context.read<CharacterProvider>().addXpForAmount(amount);
-                if (result.totalXp > 0) {
-                  await context.read<CharacterProvider>().addXP(result.totalXp);
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Batal',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final amount = double.tryParse(amountController.text) ?? 0;
+                if (amount > 0) {
+                  final result = await context
+                      .read<QuestProvider>()
+                      .addFundsToGoal(quest.id, amount);
+                  await context.read<CharacterProvider>().addXpForAmount(amount);
+                  if (result.totalXp > 0) {
+                    await context.read<CharacterProvider>().addXP(result.totalXp);
+                  }
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Dana berhasil ditambahkan!')),
+                  );
                 }
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Dana berhasil ditambahkan!')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryNeon,
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryNeon,
+              ),
+              child: const Text(
+                'Simpan',
+                style: TextStyle(color: AppColors.darkBg),
+              ),
             ),
-            child: const Text(
-              'Simpan',
-              style: TextStyle(color: AppColors.darkBg),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

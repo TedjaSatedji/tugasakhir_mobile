@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/constants/app_themes.dart';
 import 'core/constants/app_strings.dart';
+import 'core/services/storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/quest_provider.dart';
 import 'providers/transaction_provider.dart';
@@ -19,6 +20,9 @@ void main() async {
   
   // Initialize Hive
   await Hive.initFlutter();
+
+  // Hydrate the userId cache before providers load data
+  await StorageService().initialize();
   
   // Initialize Local Notifications
   await LocalNotificationService().initialize();

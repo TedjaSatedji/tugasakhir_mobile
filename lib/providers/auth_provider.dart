@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../core/services/app_lock_service.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/storage_service.dart';
 import '../models/user_model.dart';
+import '../services/local_database.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -30,6 +32,15 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
+    // Hydrate the userId cache from secure storage
+    await StorageService().initialize();
+
+    // Migrate any old data to the current user
+    final userId = StorageService.currentUserId;
+    if (userId != 'guest') {
+      await LocalDatabase.instance.migrateOldUserData(userId);
+    }
+
     final tokenValid = await _authService.isTokenValid();
     _isAuthenticated = tokenValid;
     _lockEnabled = await _appLockService.isLockEnabled();
@@ -48,8 +59,12 @@ class AuthProvider extends ChangeNotifier {
       final token = await _authService.login(email, password);
       _isAuthenticated = token.isNotEmpty;
       _isUnlocked = true;
+
+      // Migrate old data to this user's email-based ID
+      await LocalDatabase.instance.migrateOldUserData(StorageService.currentUserId);
+
       _user = UserModel(
-        id: '1',
+        id: StorageService.currentUserId,
         email: email,
         characterName: 'Hero',
         level: 1,
@@ -142,6 +157,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await StorageService().clearUserId();
     await _authService.logout();
     _isAuthenticated = false;
     _user = null;

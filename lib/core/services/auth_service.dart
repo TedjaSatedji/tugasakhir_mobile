@@ -56,6 +56,7 @@ class AuthService {
 
       await _storageService.saveToken(token);
       await _storageService.saveUserData('email', email);
+      await _storageService.saveUserId(email); // Use email as per-user key
 
       return token;
     } on DioException catch (e) {

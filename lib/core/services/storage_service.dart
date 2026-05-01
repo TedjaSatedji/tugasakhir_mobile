@@ -8,6 +8,25 @@ class StorageService {
     ),
   );
 
+  /// Cached current user ID, available synchronously after [initialize].
+  static String? _cachedUserId;
+  static String get currentUserId => _cachedUserId ?? 'guest';
+
+  /// Call once at app startup (after login check) to hydrate the cache.
+  Future<void> initialize() async {
+    _cachedUserId = await _storage.read(key: 'user_id');
+  }
+
+  Future<void> saveUserId(String userId) async {
+    _cachedUserId = userId;
+    await _storage.write(key: 'user_id', value: userId);
+  }
+
+  Future<void> clearUserId() async {
+    _cachedUserId = null;
+    await _storage.delete(key: 'user_id');
+  }
+
   // Save JWT Token
   Future<void> saveToken(String token) async {
     await _storage.write(key: 'jwt_token', value: token);
@@ -35,6 +54,7 @@ class StorageService {
 
   // Delete All
   Future<void> deleteAll() async {
+    _cachedUserId = null;
     await _storage.deleteAll();
   }
 }

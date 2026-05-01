@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../core/services/storage_service.dart';
 import '../models/character_model.dart';
 import '../models/quest_model.dart';
 import '../models/transaction_model.dart';
@@ -27,7 +28,7 @@ class LocalDatabase {
     final path = join(dbPath, 'tugasakhir_mobile.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await _createTransactionsTable(db);
         await _createQuestsTable(db);
@@ -37,6 +38,11 @@ class LocalDatabase {
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createDailyMissionsTable(db);
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE transactions ADD COLUMN latitude REAL');
+          await db.execute('ALTER TABLE transactions ADD COLUMN longitude REAL');
+          await db.execute('ALTER TABLE transactions ADD COLUMN locationName TEXT');
         }
       },
     );
@@ -53,7 +59,10 @@ class LocalDatabase {
         description TEXT,
         timestamp TEXT,
         receiptImageUrl TEXT,
-        detectedCategory TEXT
+        detectedCategory TEXT,
+        latitude REAL,
+        longitude REAL,
+        locationName TEXT
       )
     ''');
   }
@@ -107,7 +116,13 @@ class LocalDatabase {
 
   Future<List<TransactionModel>> getTransactions() async {
     final db = await database;
-    final rows = await db.query('transactions', orderBy: 'timestamp DESC');
+    final userId = StorageService.currentUserId;
+    final rows = await db.query(
+      'transactions',
+      where: 'userId = ?',
+      whereArgs: [userId],
+      orderBy: 'timestamp DESC',
+    );
     return rows.map((row) => TransactionModel.fromJson(row)).toList();
   }
 
@@ -127,7 +142,13 @@ class LocalDatabase {
 
   Future<List<QuestModel>> getQuests() async {
     final db = await database;
-    final rows = await db.query('quests', orderBy: 'createdAt DESC');
+    final userId = StorageService.currentUserId;
+    final rows = await db.query(
+      'quests',
+      where: 'userId = ?',
+      whereArgs: [userId],
+      orderBy: 'createdAt DESC',
+    );
     return rows.map((row) => QuestModel.fromJson(row)).toList();
   }
 
@@ -147,7 +168,13 @@ class LocalDatabase {
 
   Future<CharacterModel?> getCharacter() async {
     final db = await database;
-    final rows = await db.query('character', limit: 1);
+    final userId = StorageService.currentUserId;
+    final rows = await db.query(
+      'character',
+      where: 'userId = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
     if (rows.isEmpty) {
       return null;
     }
@@ -200,5 +227,21 @@ class LocalDatabase {
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  /// Migrate old records that used hardcoded userId '1' or 'guest'
+  /// to the real userId. Call once after login.
+  Future<void> migrateOldUserData(String realUserId) async {
+    if (realUserId == '1' || realUserId == 'guest') return;
+
+    final db = await database;
+    for (final table in ['transactions', 'quests', 'character']) {
+      await db.update(
+        table,
+        {'userId': realUserId},
+        where: "userId = ? OR userId = ?",
+        whereArgs: ['1', 'guest'],
+      );
+    }
   }
 }

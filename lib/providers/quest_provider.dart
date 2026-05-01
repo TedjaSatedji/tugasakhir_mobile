@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/quest_model.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
+import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
 
 class DailyMission {
@@ -153,7 +154,7 @@ class QuestProvider extends ChangeNotifier {
 
     final quest = QuestModel(
       id: const Uuid().v4(),
-      userId: '1',
+      userId: StorageService.currentUserId,
       title: title,
       description: description,
       xpReward: 500, // Fixed XP reward for reaching a goal

@@ -5,6 +5,8 @@ import '../../core/constants/app_strings.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'spending_map_screen.dart';
+import 'transaction_detail_screen.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/time_converter_screen.dart';
 
@@ -32,6 +34,16 @@ class _WalletScreenState extends State<WalletScreen> {
       appBar: AppBar(
         title: const Text(AppStrings.walletTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.map_outlined, color: AppColors.primaryNeon),
+            tooltip: 'Peta Pengeluaran',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SpendingMapScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.currency_exchange, color: AppColors.primaryNeon),
             onPressed: () {
@@ -336,61 +348,82 @@ class _TransactionTile extends StatelessWidget {
     final color = isIncome ? AppColors.success : AppColors.error;
     final sign = isIncome ? '+' : '-';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: AppColors.darkCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-              color: color,
-              size: 20,
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransactionDetailScreen(transaction: transaction),
           ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: AppColors.darkCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    transaction.description,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    transaction.category?.name ?? 'Transfer',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  transaction.description,
-                  style: const TextStyle(
+                  '$sign Rp${transaction.amount.toStringAsFixed(0)}',
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    color: color,
                     fontFamily: 'Poppins',
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  transaction.category?.name ?? 'Transfer',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    fontFamily: 'Poppins',
-                  ),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textSecondary,
+                  size: 18,
                 ),
               ],
             ),
-          ),
-          Text(
-            '$sign Rp${transaction.amount.toStringAsFixed(0)}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

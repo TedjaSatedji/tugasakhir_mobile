@@ -1,3 +1,4 @@
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
@@ -5,9 +6,7 @@ class LocationService {
 
   LocationService._internal();
 
-  factory LocationService() {
-    return _instance;
-  }
+  factory LocationService() => _instance;
 
   Future<bool> requestLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -18,8 +17,8 @@ class LocationService {
         permission == LocationPermission.always;
   }
 
-  Future<Position?> getCurrentLocation() async {
-    bool hasPermission = await requestLocationPermission();
+  Future<Position?> getCurrentPosition() async {
+    final hasPermission = await requestLocationPermission();
     if (!hasPermission) return null;
 
     try {
@@ -27,22 +26,34 @@ class LocationService {
         desiredAccuracy: LocationAccuracy.high,
       );
     } catch (e) {
-      print('Error getting location: $e');
       return null;
     }
   }
 
-  Future<double> getDistanceBetween(
-    double startLatitude,
-    double startLongitude,
-    double endLatitude,
-    double endLongitude,
-  ) async {
-    return await Geolocator.distanceBetween(
-      startLatitude,
-      startLongitude,
-      endLatitude,
-      endLongitude,
-    );
+  /// Reverse geocodes coordinates to a short place name.
+  /// Returns e.g. "Kelapa Gading, Jakarta" or the raw coordinates as fallback.
+  Future<String> getPlaceName(double latitude, double longitude) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isEmpty) return _coordFallback(latitude, longitude);
+
+      final place = placemarks.first;
+      final parts = <String>[
+        if (place.name != null && place.name!.isNotEmpty && place.name != place.street)
+          place.name!,
+        if (place.subLocality != null && place.subLocality!.isNotEmpty)
+          place.subLocality!,
+        if (place.locality != null && place.locality!.isNotEmpty)
+          place.locality!,
+      ];
+
+      if (parts.isEmpty) return _coordFallback(latitude, longitude);
+      return parts.take(2).join(', ');
+    } catch (_) {
+      return _coordFallback(latitude, longitude);
+    }
   }
-}
+
+  String _coordFallback(double lat, double lng) =>
+      '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
+}

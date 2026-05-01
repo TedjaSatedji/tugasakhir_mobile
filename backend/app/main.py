@@ -32,13 +32,31 @@ app.add_middleware(
 
 
 def _extract_json_payload(text: str) -> dict:
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", text, flags=re.DOTALL)
-        if not match:
-            raise
-        return json.loads(match.group(0))
+    """Extract a single JSON object from AI text that may contain
+    markdown fences, arrays, or surrounding prose."""
+    cleaned = text.strip()
+
+    # Strip markdown code fences
+    fence_match = re.search(r"```(?:json)?\s*\n?([\s\S]*?)\n?```", cleaned)
+    if fence_match:
+        cleaned = fence_match.group(1).strip()
+
+    parsed = json.loads(cleaned)
+
+    # If the AI returned an array of items, merge them into one summary
+    if isinstance(parsed, list) and len(parsed) > 0:
+        total_amount = sum((item.get("amount") or 0) for item in parsed)
+        first = parsed[0]
+        descriptions = [item.get("description", "") for item in parsed if item.get("description")]
+        return {
+            "amount": total_amount,
+            "description": "; ".join(descriptions) if descriptions else first.get("description"),
+            "date": first.get("date"),
+            "category": first.get("category"),
+            "type": first.get("type"),
+        }
+
+    return parsed
 
 
 @app.post("/ai/receipt-extract", response_model=schemas.ReceiptExtractResponse)
@@ -48,11 +66,13 @@ async def extract_receipt(payload: schemas.ReceiptExtractRequest):
 
     prompt = (
         "You are extracting receipt/income information from an image. "
-        "Return ONLY valid JSON with these keys: "
-        "amount (number), description (string), date (YYYY-MM-DD or empty), "
+        "Return ONLY a single valid JSON object (NOT an array) with the TOTAL values: "
+        "amount (number - the grand total of the receipt), "
+        "description (string - a brief summary of the purchase), "
+        "date (YYYY-MM-DD or empty string if not visible), "
         "category (one of: food, fashion, hobby, transport, health, education, entertainment, other), "
         "type (income or expense or unknown). "
-        "If a field is missing, use null or empty string for date."
+        "Do NOT list individual items. Return one object with the total amount."
     )
 
     url = f"{GOOGLE_AI_BASE_URL}/models/{GOOGLE_AI_MODEL}:generateContent"
@@ -94,12 +114,15 @@ async def extract_receipt(payload: schemas.ReceiptExtractRequest):
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError, TypeError):
+        print(f"[AI DEBUG] Full API response: {json.dumps(data, indent=2)[:500]}")
         raise HTTPException(status_code=502, detail="AI response was invalid")
+
+    print(f"[AI DEBUG] Raw AI text: {text[:500]}")
 
     try:
         payload_json = _extract_json_payload(text)
     except Exception:
-        raise HTTPException(status_code=502, detail="AI response was not JSON")
+        raise HTTPException(status_code=502, detail=f"AI response was not JSON: {text[:300]}")
 
     return schemas.ReceiptExtractResponse(
         amount=payload_json.get("amount"),
