@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../models/quest_model.dart';
@@ -9,6 +12,7 @@ import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../wallet/wallet_screen.dart';
+import '../wallet/add_transaction_screen.dart';
 import '../quest/quest_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
@@ -27,6 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late final List<Widget> _screens;
 
+  // ── Shake detection ──────────────────────────────────────────────────
+  static const double _shakeThreshold = 15.0; // m/s²
+  static const Duration _shakeCooldown = Duration(seconds: 2);
+  StreamSubscription<AccelerometerEvent>? _accelSub;
+  DateTime _lastShake = DateTime(0);
+  // ─────────────────────────────────────────────────────────────────────
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +48,65 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProfileScreen(),
       const SettingsScreen(),
     ];
+    _startShakeDetection();
+  }
+
+  void _startShakeDetection() {
+    _accelSub = accelerometerEventStream(
+      samplingPeriod: SensorInterval.normalInterval,
+    ).listen((AccelerometerEvent event) {
+      final double magnitude = sqrt(
+        event.x * event.x +
+        event.y * event.y +
+        event.z * event.z,
+      );
+
+      // Subtract gravity (~9.8 m/s²) to get net acceleration
+      final double netAccel = (magnitude - 9.8).abs();
+
+      if (netAccel > _shakeThreshold) {
+        final now = DateTime.now();
+        if (now.difference(_lastShake) > _shakeCooldown) {
+          _lastShake = now;
+          _openAddTransaction();
+        }
+      }
+    });
+  }
+
+  void _openAddTransaction() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.add_card, color: AppColors.darkBg),
+            SizedBox(width: 10),
+            Text(
+              '📳 Shake detected — Tambah Transaksi!',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkBg,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryNeon,
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _accelSub?.cancel();
+    super.dispose();
   }
 
   @override
