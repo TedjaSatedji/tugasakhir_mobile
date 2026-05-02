@@ -5,6 +5,7 @@ import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/local_notification_service.dart';
+import '../games/budget_invaders_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -145,6 +146,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 );
               },
+            ),
+            const SizedBox(height: 30),
+
+            // Mini Games Section
+            _SectionTitle(title: '🎮 Mini Games'),
+            const SizedBox(height: 15),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BudgetInvadersScreen()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: AppColors.darkCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryNeon.withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryNeon.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Center(child: Text('💰', style: TextStyle(fontSize: 22))),
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Budget Invaders',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                                color: AppColors.primaryNeon,
+                              )),
+                          SizedBox(height: 3),
+                          Text('Lindungi tabunganmu dari serangan pengeluaran!',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                                fontFamily: 'Poppins',
+                              )),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 30),
 
