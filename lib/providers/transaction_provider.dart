@@ -3,6 +3,7 @@ import '../models/transaction_model.dart';
 import 'package:uuid/uuid.dart';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
+import '../core/services/sync_service.dart';
 
 class TransactionProvider extends ChangeNotifier {
   final LocalDatabase _db = LocalDatabase.instance;
@@ -71,6 +72,7 @@ class TransactionProvider extends ChangeNotifier {
 
     _transactions.add(transaction);
     await _db.upsertTransaction(transaction);
+    SyncService().pushTransaction(transaction);
     _isLoading = false;
     notifyListeners();
   }
@@ -78,6 +80,7 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> deleteTransaction(String transactionId) async {
     _transactions.removeWhere((t) => t.id == transactionId);
     await _db.deleteTransaction(transactionId);
+    SyncService().deleteTransaction(transactionId);
     notifyListeners();
   }
 

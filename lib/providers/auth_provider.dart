@@ -4,6 +4,7 @@ import '../core/services/auth_service.dart';
 import '../core/services/storage_service.dart';
 import '../models/user_model.dart';
 import '../services/local_database.dart';
+import '../core/services/sync_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -73,6 +74,13 @@ class AuthProvider extends ChangeNotifier {
         profileImageUrl: '',
         createdAt: DateTime.now(),
       );
+
+      // Trigger a background pull to hydrate local DB
+      await SyncService().pullAll();
+      
+      // We will need to reload the providers after this,
+      // which we can handle via callbacks or just by virtue of the widgets rebuilding.
+
       _isLoading = false;
       notifyListeners();
       return true;

@@ -13,7 +13,10 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/app_lock_screen.dart';
 import 'screens/home/home_screen.dart';
 
+import 'core/services/api_client.dart';
 import 'services/local_notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +29,20 @@ void main() async {
   
   // Initialize Local Notifications
   await LocalNotificationService().initialize();
+  
+  // Setup global auth failure hook
+  ApiClient.onAuthFailed = () {
+    if (navigatorKey.currentContext != null) {
+      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi telah berakhir. Silakan login kembali.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      // We will let AuthProvider handle the UI redirection by calling logout()
+      Provider.of<AuthProvider>(navigatorKey.currentContext!, listen: false).logout();
+    }
+  };
   
   runApp(const MyApp());
 }
@@ -49,6 +66,7 @@ class MyApp extends StatelessWidget {
         theme: AppThemes.darkCyberpunkTheme,
         darkTheme: AppThemes.darkCyberpunkTheme,
         themeMode: ThemeMode.dark,
+        navigatorKey: navigatorKey,
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             if (!authProvider.isInitialized) {

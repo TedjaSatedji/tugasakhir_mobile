@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:math';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
+import '../core/services/sync_service.dart';
 
 class DailyMission {
   final String id;
@@ -133,6 +134,7 @@ class QuestProvider extends ChangeNotifier {
         missionId: mission.id,
         isCompleted: true,
       );
+      SyncService().pushDailyMissionState(mission.id, _todayKey(), true);
       notifyListeners();
       return mission.xpReward;
     }
@@ -169,6 +171,7 @@ class QuestProvider extends ChangeNotifier {
 
     _quests.add(quest);
     await _db.upsertQuest(quest);
+    SyncService().pushQuest(quest);
     _isLoading = false;
     notifyListeners();
   }
@@ -203,6 +206,7 @@ class QuestProvider extends ChangeNotifier {
     );
 
     await _db.upsertQuest(_quests[index]);
+    SyncService().pushQuest(_quests[index]);
 
     // Also complete the daily mission for saving money
     final missionXp = await completeDailyMission('mission_2');
@@ -222,6 +226,7 @@ class QuestProvider extends ChangeNotifier {
     if (index != -1) {
       _quests[index] = _quests[index].copyWith(status: QuestStatus.completed);
       await _db.upsertQuest(_quests[index]);
+      SyncService().pushQuest(_quests[index]);
       notifyListeners();
     }
   }
@@ -232,6 +237,7 @@ class QuestProvider extends ChangeNotifier {
       _quests[index] =
           _quests[index].copyWith(progressPercentage: progress);
       await _db.upsertQuest(_quests[index]);
+      SyncService().pushQuest(_quests[index]);
       notifyListeners();
     }
   }
@@ -239,6 +245,7 @@ class QuestProvider extends ChangeNotifier {
   Future<void> deleteQuest(String questId) async {
     _quests.removeWhere((q) => q.id == questId);
     await _db.deleteQuest(questId);
+    SyncService().deleteQuest(questId);
     notifyListeners();
   }
 }

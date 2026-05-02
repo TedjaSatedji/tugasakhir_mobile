@@ -3,7 +3,8 @@ import json
 import re
 
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import auth, models, schemas
@@ -21,6 +22,30 @@ from .email_utils import send_password_reset_email, send_verification_email
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=APP_NAME)
+security = HTTPBearer()
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_db),
+) -> models.User:
+    token = credentials.credentials
+    try:
+        payload = auth.decode_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    if auth.is_verify_token(payload):
+        raise HTTPException(status_code=401, detail="Invalid token type")
+
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+        
+    return user
 
 app.add_middleware(
     CORSMiddleware,
@@ -288,3 +313,162 @@ def reset_password(payload: schemas.PasswordResetConfirm, db: Session = Depends(
     db.commit()
 
     return {"message": "Password reset successful"}
+
+
+# --- Sync Endpoints ---
+
+@app.get("/sync/transactions", response_model=list[schemas.TransactionSchema])
+def get_transactions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return current_user.transactions
+
+
+@app.post("/sync/transactions", response_model=schemas.TransactionSchema)
+def upsert_transaction(
+    payload: schemas.TransactionSchema,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    transaction = db.query(models.Transaction).filter(
+        models.Transaction.id == payload.id,
+        models.Transaction.user_id == current_user.id
+    ).first()
+
+    if not transaction:
+        transaction = models.Transaction(id=payload.id, user_id=current_user.id)
+        db.add(transaction)
+
+    # Update fields
+    for key, value in payload.model_dump().items():
+        if key != "id":
+            setattr(transaction, key, value)
+
+    db.commit()
+    db.refresh(transaction)
+    return transaction
+
+
+@app.delete("/sync/transactions/{transaction_id}")
+def delete_transaction(
+    transaction_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.user_id == current_user.id
+    ).delete()
+    db.commit()
+    return {"message": "Transaction deleted"}
+
+
+@app.get("/sync/quests", response_model=list[schemas.QuestSchema])
+def get_quests(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return current_user.quests
+
+
+@app.post("/sync/quests", response_model=schemas.QuestSchema)
+def upsert_quest(
+    payload: schemas.QuestSchema,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    quest = db.query(models.Quest).filter(
+        models.Quest.id == payload.id,
+        models.Quest.user_id == current_user.id
+    ).first()
+
+    if not quest:
+        quest = models.Quest(id=payload.id, user_id=current_user.id)
+        db.add(quest)
+
+    for key, value in payload.model_dump().items():
+        if key != "id":
+            setattr(quest, key, value)
+
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
+@app.delete("/sync/quests/{quest_id}")
+def delete_quest(
+    quest_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    db.query(models.Quest).filter(
+        models.Quest.id == quest_id,
+        models.Quest.user_id == current_user.id
+    ).delete()
+    db.commit()
+    return {"message": "Quest deleted"}
+
+
+@app.get("/sync/character", response_model=schemas.CharacterSchema | None)
+def get_character(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return current_user.character
+
+
+@app.post("/sync/character", response_model=schemas.CharacterSchema)
+def upsert_character(
+    payload: schemas.CharacterSchema,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    character = db.query(models.Character).filter(
+        models.Character.id == payload.id,
+        models.Character.user_id == current_user.id
+    ).first()
+
+    if not character:
+        character = models.Character(id=payload.id, user_id=current_user.id)
+        db.add(character)
+
+    for key, value in payload.model_dump().items():
+        if key != "id":
+            setattr(character, key, value)
+
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@app.get("/sync/daily_missions", response_model=list[schemas.DailyMissionStateSchema])
+def get_daily_missions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return current_user.daily_missions
+
+
+@app.post("/sync/daily_missions", response_model=schemas.DailyMissionStateSchema)
+def upsert_daily_mission(
+    payload: schemas.DailyMissionStateSchema,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    mission = db.query(models.DailyMissionState).filter(
+        models.DailyMissionState.id == payload.id,
+        models.DailyMissionState.user_id == current_user.id
+    ).first()
+
+    if not mission:
+        mission = models.DailyMissionState(id=payload.id, user_id=current_user.id)
+        db.add(mission)
+
+    for key, value in payload.model_dump().items():
+        if key != "id":
+            setattr(mission, key, value)
+
+    db.commit()
+    db.refresh(mission)
+    return mission

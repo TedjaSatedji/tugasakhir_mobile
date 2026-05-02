@@ -3,6 +3,7 @@ import '../models/character_model.dart';
 import 'package:uuid/uuid.dart';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
+import '../core/services/sync_service.dart';
 
 class CharacterProvider extends ChangeNotifier {
   static const int baseXpPerLevel = 200;
@@ -27,6 +28,7 @@ class CharacterProvider extends ChangeNotifier {
     if (_character == null) {
       _character = _createDefaultCharacter();
       await _db.upsertCharacter(_character!);
+      SyncService().pushCharacter(_character!);
     }
 
     _isLoading = false;
@@ -79,6 +81,7 @@ class CharacterProvider extends ChangeNotifier {
     );
 
     await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
 
     _isLoading = false;
     notifyListeners();
@@ -94,6 +97,7 @@ class CharacterProvider extends ChangeNotifier {
         level: newLevel,
       );
       await _db.upsertCharacter(_character!);
+      SyncService().pushCharacter(_character!);
       notifyListeners();
     }
   }
@@ -140,6 +144,7 @@ class CharacterProvider extends ChangeNotifier {
     _character ??= _createDefaultCharacter();
     _character = _character!.copyWith(name: newName);
     await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
     notifyListeners();
   }
 
@@ -147,6 +152,7 @@ class CharacterProvider extends ChangeNotifier {
     _character ??= _createDefaultCharacter();
     _character = _character!.copyWith(avatarUrl: avatarUrl);
     await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
     notifyListeners();
   }
 }
