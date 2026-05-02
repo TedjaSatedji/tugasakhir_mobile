@@ -266,40 +266,75 @@ class TransactionDetailScreen extends StatelessWidget {
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(transaction.receiptImageUrl!),
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: AppColors.darkCard,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              color: AppColors.textSecondary,
-                              size: 40,
+                child: transaction.receiptImageUrl!.startsWith('http')
+                  ? Image.network(
+                      transaction.receiptImageUrl!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  color: AppColors.textSecondary,
+                                  size: 40,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Gambar tidak tersedia',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Gambar tidak tersedia',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontFamily: 'Poppins',
-                              ),
+                          ),
+                        );
+                      },
+                    )
+                  : Image.file(
+                      File(transaction.receiptImageUrl!),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  color: AppColors.textSecondary,
+                                  size: 40,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Gambar tidak tersedia',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                          ),
+                        );
+                      },
+                    ),
               ),
             ],
           ],

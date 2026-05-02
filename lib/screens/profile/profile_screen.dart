@@ -81,10 +81,9 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             child: ClipOval(
                               child: (character?.avatarUrl.isNotEmpty ?? false)
-                                  ? Image.file(
-                                      File(character!.avatarUrl),
-                                      fit: BoxFit.cover,
-                                    )
+                                  ? (character!.avatarUrl.startsWith('http')
+                                      ? Image.network(character.avatarUrl, fit: BoxFit.cover)
+                                      : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
                                   : const Icon(
                                       Icons.person,
                                       size: 40,

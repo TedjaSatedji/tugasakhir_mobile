@@ -3,7 +3,10 @@ import json
 import re
 
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Security
+import os
+import shutil
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Security, UploadFile, File
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -23,6 +26,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=APP_NAME)
 security = HTTPBearer()
+
+os.makedirs("uploads/images", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(security),
@@ -84,8 +90,24 @@ def _extract_json_payload(text: str) -> dict:
     return parsed
 
 
+@app.post("/upload/image")
+async def upload_image(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+        
+    file_extension = file.filename.split(".")[-1]
+    import uuid
+    new_filename = f"{uuid.uuid4().hex}.{file_extension}"
+    file_path = f"uploads/images/{new_filename}"
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Assuming standard setup, return the relative URL
+    return {"url": f"/uploads/images/{new_filename}"}
+
 @app.post("/ai/receipt-extract", response_model=schemas.ReceiptExtractResponse)
-async def extract_receipt(payload: schemas.ReceiptExtractRequest):
+async def extract_receipt(file: UploadFile = File(...)):
     if not GOOGLE_AI_API_KEY:
         raise HTTPException(status_code=500, detail="AI API key is not configured")
 
@@ -100,6 +122,11 @@ async def extract_receipt(payload: schemas.ReceiptExtractRequest):
         "Do NOT list individual items. Return one object with the total amount."
     )
 
+    contents = await file.read()
+    import base64
+    image_base64 = base64.b64encode(contents).decode("utf-8")
+    mime_type = file.content_type or "image/jpeg"
+
     url = f"{GOOGLE_AI_BASE_URL}/models/{GOOGLE_AI_MODEL}:generateContent"
     request_body = {
         "contents": [
@@ -109,8 +136,8 @@ async def extract_receipt(payload: schemas.ReceiptExtractRequest):
                     {"text": prompt},
                     {
                         "inlineData": {
-                            "mimeType": payload.mime_type,
-                            "data": payload.image_base64,
+                            "mimeType": mime_type,
+                            "data": image_base64,
                         }
                     },
                 ],

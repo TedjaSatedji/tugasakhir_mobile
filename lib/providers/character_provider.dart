@@ -16,10 +16,10 @@ class CharacterProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   CharacterProvider() {
-    _loadCharacter();
+    loadCharacter();
   }
 
-  Future<void> _loadCharacter() async {
+  Future<void> loadCharacter() async {
     _isLoading = true;
     notifyListeners();
 
@@ -150,7 +150,14 @@ class CharacterProvider extends ChangeNotifier {
 
   Future<void> updateAvatarUrl(String avatarUrl) async {
     _character ??= _createDefaultCharacter();
-    _character = _character!.copyWith(avatarUrl: avatarUrl);
+    String finalUrl = avatarUrl;
+    if (!avatarUrl.startsWith('http')) {
+      final uploadedUrl = await SyncService().uploadImage(avatarUrl);
+      if (uploadedUrl != null) {
+        finalUrl = uploadedUrl;
+      }
+    }
+    _character = _character!.copyWith(avatarUrl: finalUrl);
     await _db.upsertCharacter(_character!);
     SyncService().pushCharacter(_character!);
     notifyListeners();

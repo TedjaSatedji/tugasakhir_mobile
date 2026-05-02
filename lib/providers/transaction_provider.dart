@@ -24,10 +24,10 @@ class TransactionProvider extends ChangeNotifier {
   double get balance => totalIncome - totalExpense;
 
   TransactionProvider() {
-    _loadTransactions();
+    loadTransactions();
   }
 
-  Future<void> _loadTransactions() async {
+  Future<void> loadTransactions() async {
     _isLoading = true;
     notifyListeners();
 
@@ -56,6 +56,14 @@ class TransactionProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(seconds: 1));
 
+    String? finalImageUrl = receiptImageUrl;
+    if (receiptImageUrl != null && !receiptImageUrl.startsWith('http')) {
+      final uploadedUrl = await SyncService().uploadImage(receiptImageUrl);
+      if (uploadedUrl != null) {
+        finalImageUrl = uploadedUrl;
+      }
+    }
+
     final transaction = TransactionModel(
       id: const Uuid().v4(),
       userId: StorageService.currentUserId,
@@ -64,7 +72,7 @@ class TransactionProvider extends ChangeNotifier {
       amount: amount,
       description: description,
       timestamp: timestamp ?? DateTime.now(),
-      receiptImageUrl: receiptImageUrl,
+      receiptImageUrl: finalImageUrl,
       latitude: latitude,
       longitude: longitude,
       locationName: locationName,

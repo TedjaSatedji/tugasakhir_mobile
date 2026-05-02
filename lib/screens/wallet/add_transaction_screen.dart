@@ -448,7 +448,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Future<void> _pickReceiptImage() async {
     final image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      maxWidth: 1024,
+      imageQuality: 70,
     );
 
     if (image == null) {

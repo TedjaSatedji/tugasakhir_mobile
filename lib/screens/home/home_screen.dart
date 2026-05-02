@@ -18,6 +18,7 @@ import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
+import '../../core/services/sync_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,13 +43,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _screens = [
-      const _HomeBody(),
+      _HomeBody(onRefresh: _refreshData),
       const QuestListScreen(),
       const WalletScreen(),
       const ProfileScreen(),
       const SettingsScreen(),
     ];
     _startShakeDetection();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+
+  Future<void> _refreshData() async {
+    await SyncService().pullAll();
+    if (!mounted) return;
+    context.read<TransactionProvider>().loadTransactions();
+    context.read<QuestProvider>().loadQuests();
+    context.read<CharacterProvider>().loadCharacter();
   }
 
   void _startShakeDetection() {
@@ -152,7 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeBody extends StatelessWidget {
-  const _HomeBody();
+  final Future<void> Function() onRefresh;
+  const _HomeBody({required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -202,9 +216,14 @@ class _HomeBody extends StatelessWidget {
           const SizedBox(width: 10),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: onRefresh,
+        backgroundColor: AppColors.darkCard,
+        color: AppColors.primaryNeon,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Welcome & Gamification Banner
@@ -231,10 +250,9 @@ class _HomeBody extends StatelessWidget {
                         ),
                         child: ClipOval(
                           child: (char?.avatarUrl.isNotEmpty ?? false)
-                              ? Image.file(
-                                  File(char!.avatarUrl),
-                                  fit: BoxFit.cover,
-                                )
+                              ? (char!.avatarUrl.startsWith('http')
+                                  ? Image.network(char.avatarUrl, fit: BoxFit.cover)
+                                  : Image.file(File(char.avatarUrl), fit: BoxFit.cover))
                               : const Icon(
                                   Icons.person,
                                   color: AppColors.primaryNeon,
@@ -410,6 +428,7 @@ class _HomeBody extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

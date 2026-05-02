@@ -60,10 +60,10 @@ class QuestProvider extends ChangeNotifier {
       _quests.where((q) => q.status == QuestStatus.completed).toList();
 
   QuestProvider() {
-    _loadQuests();
+    loadQuests();
   }
 
-  Future<void> _loadQuests() async {
+  Future<void> loadQuests() async {
     _isLoading = true;
     notifyListeners();
 

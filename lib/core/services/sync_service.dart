@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../models/transaction_model.dart';
 import '../../models/quest_model.dart';
 import '../../models/character_model.dart';
+import '../constants/api_constants.dart';
 import 'api_client.dart';
 import 'storage_service.dart';
 import '../../services/local_database.dart';
@@ -54,6 +55,23 @@ class SyncService {
     } catch (e) {
       // Ignore 401s or network errors during sync, just stay local
       print("Sync pull failed: $e");
+    }
+  }
+
+  // --- Image Upload ---
+  Future<String?> uploadImage(String imagePath) async {
+    try {
+      final fileName = imagePath.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(imagePath, filename: fileName),
+      });
+
+      final response = await _dio.post('/upload/image', data: formData);
+      final urlPath = response.data['url'] as String;
+      return '${ApiConstants.baseUrl}$urlPath';
+    } catch (e) {
+      print("Upload image failed: $e");
+      return null;
     }
   }
 

@@ -162,14 +162,14 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     _invaderDropAmount = 0.0;
     _invaderDropProgress = 0.0;
 
-    // Base speed scales up with wave; caps at ~120 px/sec
-    _invaderSpeedX = min(120.0, 28.0 + (_wave - 1) * 12.0);
+    // Base speed scales up with wave; caps at ~150 px/sec
+    _invaderSpeedX = min(150.0, 30.0 + (_wave - 1) * 15.0);
 
-    const cols = 9, rows = 4;
-    const startX = 30.0;
+    const cols = 6, rows = 4;
+    final startX = _W * 0.18;
     const startY = 80.0;
     final spacingX = (_W - startX * 2) / (cols - 1);
-    const spacingY = 52.0;
+    const spacingY = 50.0;
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
         _invaders.add(_Invader(
@@ -335,7 +335,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
     // ── Enemy shooting ───────────────────────────────────────────────────
     _enemyShootTimer += dt;
-    final shootInterval = max(0.5, 1.8 - (_wave - 1) * 0.2);
+    final shootInterval = max(0.6, 2.5 - (_wave - 1) * 0.3);
     if (_enemyShootTimer >= shootInterval) {
       _enemyShootTimer = 0;
       final alive = _invaders.where((i) => i.alive).toList();

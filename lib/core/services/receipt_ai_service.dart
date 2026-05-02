@@ -36,16 +36,16 @@ class ReceiptAiService {
 
   Future<ReceiptAiResult> extractFromImage(String imagePath) async {
     final file = File(imagePath);
-    final bytes = await file.readAsBytes();
-    final mimeType = _guessMimeType(imagePath);
+    final fileName = file.path.split('/').last;
+    
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: fileName),
+    });
 
     try {
       final response = await _dio.post(
         ApiConstants.receiptExtractPath,
-        data: {
-          'image_base64': base64Encode(bytes),
-          'mime_type': mimeType,
-        },
+        data: formData,
       );
 
       final data = response.data;

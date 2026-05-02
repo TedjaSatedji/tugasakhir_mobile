@@ -64,10 +64,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     child: ClipOval(
                       child: (_avatarPath != null && _avatarPath!.isNotEmpty)
-                          ? Image.file(
-                              File(_avatarPath!),
-                              fit: BoxFit.cover,
-                            )
+                          ? (_avatarPath!.startsWith('http')
+                              ? Image.network(_avatarPath!, fit: BoxFit.cover)
+                              : Image.file(File(_avatarPath!), fit: BoxFit.cover))
                           : const Icon(
                               Icons.person,
                               size: 48,
@@ -168,7 +167,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickAvatar() async {
     final image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      maxWidth: 512,
+      imageQuality: 70,
     );
 
     if (image == null) {
