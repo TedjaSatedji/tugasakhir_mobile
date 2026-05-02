@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/character_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -65,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: ClipOval(
                       child: (_avatarPath != null && _avatarPath!.isNotEmpty)
                           ? (_avatarPath!.startsWith('http')
-                              ? Image.network(_avatarPath!, fit: BoxFit.cover)
+                              ? CachedNetworkImage(imageUrl: _avatarPath!, fit: BoxFit.cover)
                               : Image.file(File(_avatarPath!), fit: BoxFit.cover))
                           : const Icon(
                               Icons.person,

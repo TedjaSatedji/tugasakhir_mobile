@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
@@ -267,11 +268,16 @@ class TransactionDetailScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: transaction.receiptImageUrl!.startsWith('http')
-                  ? Image.network(
-                      transaction.receiptImageUrl!,
+                  ? CachedNetworkImage(
+                      imageUrl: transaction.receiptImageUrl!,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      placeholder: (context, url) => Container(
+                        height: 150,
+                        color: AppColors.darkCard,
+                        child: const Center(child: CircularProgressIndicator(color: AppColors.primaryNeon)),
+                      ),
+                      errorWidget: (context, url, error) {
                         return Container(
                           height: 150,
                           decoration: BoxDecoration(

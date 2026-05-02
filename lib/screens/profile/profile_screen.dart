@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/character_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'edit_profile_screen.dart';
 
@@ -82,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
                             child: ClipOval(
                               child: (character?.avatarUrl.isNotEmpty ?? false)
                                   ? (character!.avatarUrl.startsWith('http')
-                                      ? Image.network(character.avatarUrl, fit: BoxFit.cover)
+                                      ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
                                       : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
                                   : const Icon(
                                       Icons.person,

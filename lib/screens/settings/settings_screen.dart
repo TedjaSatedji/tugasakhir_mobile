@@ -216,13 +216,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _SettingTile(
               title: 'Kebijakan Privasi',
               value: '',
-              onTap: () {},
+              onTap: () {
+                _showPrivacyPolicyDialog();
+              },
             ),
             const SizedBox(height: 15),
             _SettingTile(
               title: 'Saran & Kesan',
               value: '',
-              onTap: () {},
+              onTap: () {
+                _showFeedbackDialog();
+              },
             ),
           ],
         ),
@@ -298,6 +302,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPrivacyPolicyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        title: const Row(
+          children: [
+            Icon(Icons.privacy_tip, color: AppColors.primaryNeon),
+            SizedBox(width: 10),
+            Text('Kebijakan Privasi', style: TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins', fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Privasi Anda adalah prioritas kami. Semua data keuangan dan progres RPG Anda disimpan dengan aman dan hanya dapat diakses oleh Anda. Kami tidak membagikan data Anda kepada pihak ketiga. Teruslah berpetualang dengan tenang!',
+          style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins', fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Mengerti', style: TextStyle(color: AppColors.primaryNeon, fontFamily: 'Poppins')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        title: const Row(
+          children: [
+            Icon(Icons.favorite, color: AppColors.error),
+            SizedBox(width: 10),
+            Text('Saran & Kesan', style: TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins', fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Terima kasih telah menemani perjalanan Questify! Fitur untuk mengirimkan saran dan kesan sedang dalam tahap penempaan oleh para pandai besi kami. Nantikan pembaruan selanjutnya!',
+          style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins', fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup', style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins')),
+          ),
+        ],
       ),
     );
   }

@@ -19,6 +19,7 @@ import '../settings/settings_screen.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
 import '../../core/services/sync_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -251,7 +252,7 @@ class _HomeBody extends StatelessWidget {
                         child: ClipOval(
                           child: (char?.avatarUrl.isNotEmpty ?? false)
                               ? (char!.avatarUrl.startsWith('http')
-                                  ? Image.network(char.avatarUrl, fit: BoxFit.cover)
+                                  ? CachedNetworkImage(imageUrl: char.avatarUrl, fit: BoxFit.cover)
                                   : Image.file(File(char.avatarUrl), fit: BoxFit.cover))
                               : const Icon(
                                   Icons.person,
