@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
-import '../../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../services/local_notification_service.dart';
 import '../games/budget_invaders_screen.dart';
+import '../../core/extensions/theme_extensions.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,8 +21,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _dailyReminderEnabled = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
-  String _selectedTheme = 'dark';
-  String _selectedLanguage = 'id';
 
   @override
   void initState() {
@@ -54,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.settingsTitle),
+        title: Text('settingsTitle'.tr()),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -62,19 +63,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Display Section
-            _SectionTitle(title: 'Display'),
+            _SectionTitle(title: 'display'.tr()),
             const SizedBox(height: 15),
             _SettingTile(
-              title: 'Tema',
-              value: _selectedTheme,
+              title: 'theme'.tr(),
+              value: context.watch<ThemeProvider>().isDarkMode ? 'dark'.tr() : 'light'.tr(),
               onTap: () {
                 _showThemeDialog();
               },
             ),
             const SizedBox(height: 15),
             _SettingTile(
-              title: 'Bahasa',
-              value: _selectedLanguage,
+              title: 'language'.tr(),
+              value: context.locale.languageCode == 'id' ? 'Bahasa Indonesia' : 'English',
               onTap: () {
                 _showLanguageDialog();
               },
@@ -82,10 +83,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 30),
 
             // Notification Section
-            _SectionTitle(title: 'Notifikasi'),
+            _SectionTitle(title: 'notification'.tr()),
             const SizedBox(height: 15),
             _SwitchTile(
-              title: 'Pengingat Harian (Lokal)',
+              title: 'dailyReminder'.tr(),
               value: _dailyReminderEnabled,
               onChanged: (value) {
                 setState(() {
@@ -97,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (_dailyReminderEnabled) ...[
               const SizedBox(height: 15),
               _SettingTile(
-                title: 'Waktu Pengingat',
+                title: 'reminderTime'.tr(),
                 value: '${_reminderTime.hour.toString().padLeft(2, '0')}:${_reminderTime.minute.toString().padLeft(2, '0')}',
                 onTap: () async {
                   final picked = await showTimePicker(
@@ -116,7 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 30),
 
             // Security Section
-            _SectionTitle(title: 'Keamanan'),
+            _SectionTitle(title: 'security'.tr()),
             const SizedBox(height: 15),
             Consumer<AuthProvider>(
               builder: (context, authProvider, _) {
@@ -160,9 +161,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: AppColors.darkCard,
+                  color: context.card,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryNeon.withOpacity(0.4)),
+                  border: Border.all(color: context.primary.withOpacity(0.4)),
                 ),
                 child: Row(
                   children: [
@@ -170,13 +171,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryNeon.withOpacity(0.15),
+                        color: context.primary.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Center(child: Text('💰', style: TextStyle(fontSize: 22))),
                     ),
                     const SizedBox(width: 15),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -184,20 +185,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Poppins',
-                                color: AppColors.primaryNeon,
+                                color: context.primary,
                               )),
-                          SizedBox(height: 3),
-                          Text('Lindungi tabunganmu dari serangan pengeluaran!',
+                          const SizedBox(height: 3),
+                          Text('budgetInvadersDesc'.tr(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.textSecondary,
+                                color: context.textDim,
                                 fontFamily: 'Poppins',
                               )),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios,
-                        size: 16, color: AppColors.textSecondary),
+                    Icon(Icons.arrow_forward_ios,
+                        size: 16, color: context.textDim),
                   ],
                 ),
               ),
@@ -205,16 +206,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 30),
 
             // About Section
-            _SectionTitle(title: 'Tentang'),
+            _SectionTitle(title: 'about'.tr()),
             const SizedBox(height: 15),
             _SettingTile(
-              title: 'Versi App',
+              title: 'appVersion'.tr(),
               value: '1.0.0',
               onTap: () {},
             ),
             const SizedBox(height: 15),
             _SettingTile(
-              title: 'Kebijakan Privasi',
+              title: 'privacyPolicy'.tr(),
               value: '',
               onTap: () {
                 _showPrivacyPolicyDialog();
@@ -222,7 +223,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 15),
             _SettingTile(
-              title: 'Saran & Kesan',
+              title: 'feedback'.tr(),
               value: '',
               onTap: () {
                 _showFeedbackDialog();
@@ -235,34 +236,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showThemeDialog() {
+    final themeProvider = context.read<ThemeProvider>();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Pilih Tema'),
+        backgroundColor: context.card,
+        title: Text('selectTheme'.tr(), style: TextStyle(color: context.text)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile(
-              title: const Text('Dark'),
-              value: 'dark',
-              groupValue: _selectedTheme,
+              title: Text('dark'.tr(), style: TextStyle(color: context.text)),
+              value: ThemeMode.dark,
+              groupValue: themeProvider.themeMode,
               onChanged: (value) {
-                setState(() {
-                  _selectedTheme = value!;
-                });
+                themeProvider.setThemeMode(value!);
                 Navigator.pop(context);
               },
+              activeColor: context.primary,
             ),
             RadioListTile(
-              title: const Text('Light'),
-              value: 'light',
-              groupValue: _selectedTheme,
+              title: Text('light'.tr(), style: TextStyle(color: context.text)),
+              value: ThemeMode.light,
+              groupValue: themeProvider.themeMode,
               onChanged: (value) {
-                setState(() {
-                  _selectedTheme = value!;
-                });
+                themeProvider.setThemeMode(value!);
                 Navigator.pop(context);
               },
+              activeColor: context.primary,
             ),
           ],
         ),
@@ -274,31 +275,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Pilih Bahasa'),
+        backgroundColor: context.card,
+        title: Text('selectLanguage'.tr(), style: TextStyle(color: context.text)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile(
-              title: const Text('Bahasa Indonesia'),
+              title: Text('Bahasa Indonesia', style: TextStyle(color: context.text)),
               value: 'id',
-              groupValue: _selectedLanguage,
+              groupValue: context.locale.languageCode,
               onChanged: (value) {
-                setState(() {
-                  _selectedLanguage = value!;
-                });
+                context.setLocale(Locale(value!));
                 Navigator.pop(context);
               },
+              activeColor: context.primary,
             ),
             RadioListTile(
-              title: const Text('English'),
+              title: Text('English', style: TextStyle(color: context.text)),
               value: 'en',
-              groupValue: _selectedLanguage,
+              groupValue: context.locale.languageCode,
               onChanged: (value) {
-                setState(() {
-                  _selectedLanguage = value!;
-                });
+                context.setLocale(Locale(value!));
                 Navigator.pop(context);
               },
+              activeColor: context.primary,
             ),
           ],
         ),
@@ -310,22 +310,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
-        title: const Row(
+        backgroundColor: context.card,
+        title: Row(
           children: [
-            Icon(Icons.privacy_tip, color: AppColors.primaryNeon),
-            SizedBox(width: 10),
-            Text('Kebijakan Privasi', style: TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins', fontSize: 18)),
+            Icon(Icons.privacy_tip, color: context.primary),
+            const SizedBox(width: 10),
+            Text('privacyPolicy'.tr(), style: TextStyle(color: context.text, fontFamily: 'Poppins', fontSize: 18)),
           ],
         ),
-        content: const Text(
-          'Privasi Anda adalah prioritas kami. Semua data keuangan dan progres RPG Anda disimpan dengan aman dan hanya dapat diakses oleh Anda. Kami tidak membagikan data Anda kepada pihak ketiga. Teruslah berpetualang dengan tenang!',
-          style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins', fontSize: 14),
+        content: Text(
+          'privacyText'.tr(),
+          style: TextStyle(color: context.textDim, fontFamily: 'Poppins', fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Mengerti', style: TextStyle(color: AppColors.primaryNeon, fontFamily: 'Poppins')),
+            child: Text('gotIt'.tr(), style: TextStyle(color: context.primary, fontFamily: 'Poppins')),
           ),
         ],
       ),
@@ -336,22 +336,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
-        title: const Row(
+        backgroundColor: context.card,
+        title: Row(
           children: [
             Icon(Icons.favorite, color: AppColors.error),
-            SizedBox(width: 10),
-            Text('Saran & Kesan', style: TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins', fontSize: 18)),
+            const SizedBox(width: 10),
+            Text('feedback'.tr(), style: TextStyle(color: context.text, fontFamily: 'Poppins', fontSize: 18)),
           ],
         ),
-        content: const Text(
-          'Terima kasih telah menemani perjalanan Questify! Fitur untuk mengirimkan saran dan kesan sedang dalam tahap penempaan oleh para pandai besi kami. Nantikan pembaruan selanjutnya!',
-          style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins', fontSize: 14),
+        content: Text(
+          'feedbackText'.tr(),
+          style: TextStyle(color: context.textDim, fontFamily: 'Poppins', fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup', style: TextStyle(color: AppColors.textSecondary, fontFamily: 'Poppins')),
+            child: Text('close'.tr(), style: TextStyle(color: context.textDim, fontFamily: 'Poppins')),
           ),
         ],
       ),
@@ -456,7 +456,7 @@ class _PinDialogState extends State<_PinDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
+          child: Text('cancel'.tr()),
         ),
         TextButton(
           onPressed: () {
@@ -479,7 +479,7 @@ class _PinDialogState extends State<_PinDialog> {
 
             Navigator.pop(context, pin);
           },
-          child: const Text('Simpan'),
+          child: Text('save'.tr()),
         ),
       ],
     );
@@ -495,11 +495,11 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
         fontFamily: 'Poppins',
-        color: AppColors.primaryNeon,
+        color: context.primary,
       ),
     );
   }
@@ -523,10 +523,10 @@ class _SettingTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: AppColors.darkCard,
+          color: context.card,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.primaryNeon.withOpacity(0.2),
+            color: context.primary.withOpacity(0.2),
           ),
         ),
         child: Row(
@@ -534,25 +534,26 @@ class _SettingTile extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             Row(
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: context.textDim,
                     fontFamily: 'Poppins',
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                 ),
               ],
             ),
@@ -579,10 +580,10 @@ class _SwitchTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primaryNeon.withOpacity(0.2),
+          color: context.primary.withOpacity(0.2),
         ),
       ),
       child: Row(
@@ -590,15 +591,16 @@ class _SwitchTile extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'Poppins',
+              color: context.text,
             ),
           ),
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primaryNeon,
+            activeThumbColor: context.primary,
           ),
         ],
       ),

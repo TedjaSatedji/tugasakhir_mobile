@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'core/constants/app_themes.dart';
 import 'core/constants/app_strings.dart';
 import 'core/services/storage_service.dart';
@@ -9,6 +10,7 @@ import 'providers/quest_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/character_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/app_lock_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -44,7 +46,16 @@ void main() async {
     }
   };
   
-  runApp(const MyApp());
+  await EasyLocalization.ensureInitialized();
+  
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('id'), Locale('en')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('id'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -59,15 +70,21 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => CharacterProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppThemes.darkCyberpunkTheme,
-        darkTheme: AppThemes.darkCyberpunkTheme,
-        themeMode: ThemeMode.dark,
-        navigatorKey: navigatorKey,
-        home: Consumer<AuthProvider>(
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: AppStrings.appName,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            theme: AppThemes.lightMinimalistTheme,
+            darkTheme: AppThemes.darkCyberpunkTheme,
+            themeMode: themeProvider.themeMode,
+            navigatorKey: navigatorKey,
+            home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             if (!authProvider.isInitialized) {
               return const Scaffold(
@@ -88,7 +105,9 @@ class MyApp extends StatelessWidget {
             return const HomeScreen();
           },
         ),
-      ),
-    );
-  }
+      );
+    },
+    ),
+  );
+}
 }

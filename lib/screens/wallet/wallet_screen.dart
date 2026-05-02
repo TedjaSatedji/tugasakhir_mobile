@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
@@ -32,11 +34,11 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.walletTitle),
+        title: Text('walletTitle'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.map_outlined, color: AppColors.primaryNeon),
-            tooltip: 'Peta Pengeluaran',
+            tooltip: 'spendingMap'.tr(),
             onPressed: () {
               Navigator.push(
                 context,
@@ -101,10 +103,10 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Saldo Total',
+                      Text(
+                        'totalBalance'.tr(),
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: context.textDim,
                           fontSize: 14,
                           fontFamily: 'Poppins',
                         ),
@@ -129,7 +131,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   children: [
                     Expanded(
                       child: _StatCard(
-                        title: AppStrings.income,
+                        title: 'income'.tr(),
                         amount: transProvider.totalIncome,
                         icon: Icons.arrow_downward,
                         color: AppColors.success,
@@ -138,7 +140,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     const SizedBox(width: 15),
                     Expanded(
                       child: _StatCard(
-                        title: AppStrings.expense,
+                        title: 'expense'.tr(),
                         amount: transProvider.totalExpense,
                         icon: Icons.arrow_upward,
                         color: AppColors.error,
@@ -149,12 +151,13 @@ class _WalletScreenState extends State<WalletScreen> {
                 const SizedBox(height: 30),
 
                 // Search and Filter Section
-                const Text(
-                  'Riwayat Transaksi',
+                Text(
+                  'transactionHistory'.tr(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
+                    color: context.text,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -162,21 +165,21 @@ class _WalletScreenState extends State<WalletScreen> {
                   controller: _searchController,
                   onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText: 'Cari transaksi...',
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.search, color: AppColors.primaryNeon),
+                    hintText: 'searchTransaction'.tr(),
+                    hintStyle: TextStyle(color: context.textDim),
+                    prefixIcon: Icon(Icons.search, color: context.primary),
                     filled: true,
-                    fillColor: AppColors.darkCard,
+                    fillColor: context.card,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                      borderSide: BorderSide(color: context.primary.withOpacity(0.3)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                      borderSide: BorderSide(color: context.primary.withOpacity(0.3)),
                     ),
                   ),
-                  style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins'),
+                  style: TextStyle(color: context.text, fontFamily: 'Poppins'),
                 ),
                 const SizedBox(height: 10),
                 SingleChildScrollView(
@@ -184,24 +187,24 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Row(
                     children: [
                       FilterChip(
-                        label: const Text('Semua'),
+                        label: Text('all'.tr()),
                         selected: _selectedTypeFilter == null,
                         onSelected: (selected) {
                           setState(() {
                             _selectedTypeFilter = null;
                           });
                         },
-                        selectedColor: AppColors.primaryNeon.withOpacity(0.3),
-                        checkmarkColor: AppColors.primaryNeon,
+                        selectedColor: context.primary.withOpacity(0.3),
+                        checkmarkColor: context.primary,
                         labelStyle: TextStyle(
-                          color: _selectedTypeFilter == null ? AppColors.primaryNeon : AppColors.textSecondary,
+                          color: _selectedTypeFilter == null ? context.primary : context.textDim,
                           fontFamily: 'Poppins',
                         ),
-                        backgroundColor: AppColors.darkCard,
+                        backgroundColor: context.card,
                       ),
                       const SizedBox(width: 8),
                       FilterChip(
-                        label: const Text('Pemasukan'),
+                        label: Text('income'.tr()),
                         selected: _selectedTypeFilter == TransactionType.income,
                         onSelected: (selected) {
                           setState(() {
@@ -211,14 +214,14 @@ class _WalletScreenState extends State<WalletScreen> {
                         selectedColor: AppColors.success.withOpacity(0.3),
                         checkmarkColor: AppColors.success,
                         labelStyle: TextStyle(
-                          color: _selectedTypeFilter == TransactionType.income ? AppColors.success : AppColors.textSecondary,
+                          color: _selectedTypeFilter == TransactionType.income ? AppColors.success : context.textDim,
                           fontFamily: 'Poppins',
                         ),
-                        backgroundColor: AppColors.darkCard,
+                        backgroundColor: context.card,
                       ),
                       const SizedBox(width: 8),
                       FilterChip(
-                        label: const Text('Pengeluaran'),
+                        label: Text('expense'.tr()),
                         selected: _selectedTypeFilter == TransactionType.expense,
                         onSelected: (selected) {
                           setState(() {
@@ -228,10 +231,10 @@ class _WalletScreenState extends State<WalletScreen> {
                         selectedColor: AppColors.error.withOpacity(0.3),
                         checkmarkColor: AppColors.error,
                         labelStyle: TextStyle(
-                          color: _selectedTypeFilter == TransactionType.expense ? AppColors.error : AppColors.textSecondary,
+                          color: _selectedTypeFilter == TransactionType.expense ? AppColors.error : context.textDim,
                           fontFamily: 'Poppins',
                         ),
-                        backgroundColor: AppColors.darkCard,
+                        backgroundColor: context.card,
                       ),
                     ],
                   ),
@@ -252,9 +255,9 @@ class _WalletScreenState extends State<WalletScreen> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: Text(
-                            'Belum ada transaksi',
+                            'noTransactionYet'.tr(),
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: context.textDim,
                               fontFamily: 'Poppins',
                             ),
                           ),
@@ -300,7 +303,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
@@ -313,9 +316,9 @@ class _StatCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                   fontFamily: 'Poppins',
                 ),
               ),
@@ -361,7 +364,7 @@ class _TransactionTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: AppColors.darkCard,
+          color: context.card,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.2)),
         ),
@@ -386,17 +389,18 @@ class _TransactionTile extends StatelessWidget {
                 children: [
                   Text(
                     transaction.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
+                      color: context.text,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    transaction.category?.name ?? 'Transfer',
-                    style: const TextStyle(
+                    transaction.category?.name ?? 'transfer'.tr(),
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.textDim,
                       fontFamily: 'Poppins',
                     ),
                   ),
@@ -417,7 +421,7 @@ class _TransactionTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Icon(
                   Icons.chevron_right,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                   size: 18,
                 ),
               ],

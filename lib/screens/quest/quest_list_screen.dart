@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/character_provider.dart';
@@ -30,7 +32,7 @@ class _QuestListScreenState extends State<QuestListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Target Tabungan'),
+        title: Text('targetSavings'.tr()),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -41,8 +43,8 @@ class _QuestListScreenState extends State<QuestListScreen> {
             ),
           );
         },
-        backgroundColor: AppColors.primaryNeon,
-        child: const Icon(Icons.add, color: AppColors.darkBg),
+        backgroundColor: context.primary,
+        child: Icon(Icons.add, color: context.bg),
       ),
       body: Consumer<QuestProvider>(
         builder: (context, questProvider, _) {
@@ -54,34 +56,34 @@ class _QuestListScreenState extends State<QuestListScreen> {
                   Container(
                     padding: const EdgeInsets.all(25),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryNeon.withOpacity(0.1),
+                      color: context.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.savings_outlined,
                       size: 80,
-                      color: AppColors.primaryNeon,
+                      color: context.primary,
                     ),
                   ),
                   const SizedBox(height: 30),
-                  const Text(
-                    'Belum ada Target',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      fontFamily: 'Poppins',
+                    Text(
+                      'noTarget'.tr(),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: context.text,
+                        fontFamily: 'Poppins',
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Tentukan tujuan keuanganmu dan pantau progresnya setiap hari!',
+                      'noTargetDesc'.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: context.textDim,
                         fontFamily: 'Poppins',
                       ),
                     ),
@@ -97,16 +99,16 @@ class _QuestListScreenState extends State<QuestListScreen> {
                       );
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text(
-                      'Buat Target Pertama',
+                    label: Text(
+                      'createFirstTarget'.tr(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Poppins',
-                        color: AppColors.darkBg,
+                        color: context.bg,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryNeon,
+                      backgroundColor: context.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -135,21 +137,21 @@ class _QuestListScreenState extends State<QuestListScreen> {
                       controller: _searchController,
                       onChanged: (value) => setState(() {}),
                       decoration: InputDecoration(
-                        hintText: 'Cari target...',
-                        hintStyle: const TextStyle(color: AppColors.textSecondary),
-                        prefixIcon: const Icon(Icons.search, color: AppColors.primaryNeon),
+                        hintText: 'searchTarget'.tr(),
+                        hintStyle: TextStyle(color: context.textDim),
+                        prefixIcon: Icon(Icons.search, color: context.primary),
                         filled: true,
-                        fillColor: AppColors.darkCard,
+                        fillColor: context.card,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                          borderSide: BorderSide(color: context.primary.withOpacity(0.3)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.primaryNeon.withOpacity(0.3)),
+                          borderSide: BorderSide(color: context.primary.withOpacity(0.3)),
                         ),
                       ),
-                      style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Poppins'),
+                      style: TextStyle(color: context.text, fontFamily: 'Poppins'),
                     ),
                     const SizedBox(height: 10),
                     SingleChildScrollView(
@@ -157,41 +159,41 @@ class _QuestListScreenState extends State<QuestListScreen> {
                       child: Row(
                         children: [
                           FilterChip(
-                            label: const Text('Semua'),
+                            label: Text('all'.tr()),
                             selected: _selectedStatusFilter == null,
                             onSelected: (selected) {
                               setState(() {
                                 _selectedStatusFilter = null;
                               });
                             },
-                            selectedColor: AppColors.primaryNeon.withOpacity(0.3),
-                            checkmarkColor: AppColors.primaryNeon,
+                            selectedColor: context.primary.withOpacity(0.3),
+                            checkmarkColor: context.primary,
                             labelStyle: TextStyle(
-                              color: _selectedStatusFilter == null ? AppColors.primaryNeon : AppColors.textSecondary,
+                              color: _selectedStatusFilter == null ? context.primary : context.textDim,
                               fontFamily: 'Poppins',
                             ),
-                            backgroundColor: AppColors.darkCard,
+                            backgroundColor: context.card,
                           ),
                           const SizedBox(width: 8),
                           FilterChip(
-                            label: const Text('Aktif'),
+                            label: Text('active'.tr()),
                             selected: _selectedStatusFilter == QuestStatus.active,
                             onSelected: (selected) {
                               setState(() {
                                 _selectedStatusFilter = QuestStatus.active;
                               });
                             },
-                            selectedColor: AppColors.primaryNeon.withOpacity(0.3),
-                            checkmarkColor: AppColors.primaryNeon,
+                            selectedColor: context.primary.withOpacity(0.3),
+                            checkmarkColor: context.primary,
                             labelStyle: TextStyle(
-                              color: _selectedStatusFilter == QuestStatus.active ? AppColors.primaryNeon : AppColors.textSecondary,
+                              color: _selectedStatusFilter == QuestStatus.active ? context.primary : context.textDim,
                               fontFamily: 'Poppins',
                             ),
-                            backgroundColor: AppColors.darkCard,
+                            backgroundColor: context.card,
                           ),
                           const SizedBox(width: 8),
                           FilterChip(
-                            label: const Text('Selesai'),
+                            label: Text('completed'.tr()),
                             selected: _selectedStatusFilter == QuestStatus.completed,
                             onSelected: (selected) {
                               setState(() {
@@ -201,10 +203,10 @@ class _QuestListScreenState extends State<QuestListScreen> {
                             selectedColor: AppColors.success.withOpacity(0.3),
                             checkmarkColor: AppColors.success,
                             labelStyle: TextStyle(
-                              color: _selectedStatusFilter == QuestStatus.completed ? AppColors.success : AppColors.textSecondary,
+                              color: _selectedStatusFilter == QuestStatus.completed ? AppColors.success : context.textDim,
                               fontFamily: 'Poppins',
                             ),
-                            backgroundColor: AppColors.darkCard,
+                            backgroundColor: context.card,
                           ),
                         ],
                       ),
@@ -216,9 +218,9 @@ class _QuestListScreenState extends State<QuestListScreen> {
                 child: filteredQuests.isEmpty
                     ? Center(
                         child: Text(
-                          'Tidak ada target yang sesuai',
+                          'noMatchingTarget'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -264,17 +266,17 @@ class _GoalCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _getStatusColor().withOpacity(0.1),
+            color: _getStatusColor(context).withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
         border: Border.all(
-          color: _getStatusColor().withOpacity(0.3),
+          color: _getStatusColor(context).withOpacity(0.3),
           width: 1.5,
         ),
       ),
@@ -290,12 +292,12 @@ class _GoalCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _getStatusColor().withOpacity(0.15),
+                    color: _getStatusColor(context).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Icon(
                     _getCategoryIcon(),
-                    color: _getStatusColor(),
+                    color: _getStatusColor(context),
                     size: 28,
                   ),
                 ),
@@ -306,24 +308,24 @@ class _GoalCard extends StatelessWidget {
                     children: [
                       Text(
                         quest.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           fontFamily: 'Poppins',
-                          color: AppColors.textPrimary,
+                          color: context.text,
                         ),
                       ),
                       const SizedBox(height: 5),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _getStatusColor().withOpacity(0.2),
+                          color: _getStatusColor(context).withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _getStatusText(),
+                          _getStatusText().tr(),
                           style: TextStyle(
-                            color: _getStatusColor(),
+                            color: _getStatusColor(context),
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Poppins',
@@ -349,10 +351,10 @@ class _GoalCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Terkumpul',
+                        Text(
+                          'collected'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontSize: 12,
                             fontFamily: 'Poppins',
                           ),
@@ -361,7 +363,7 @@ class _GoalCard extends StatelessWidget {
                         Text(
                           'Rp${quest.currentSavedAmount.toStringAsFixed(0)}',
                           style: TextStyle(
-                            color: _getStatusColor(),
+                            color: _getStatusColor(context),
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                             fontFamily: 'Poppins',
@@ -372,10 +374,10 @@ class _GoalCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
-                          'Target',
+                        Text(
+                          'target'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontSize: 12,
                             fontFamily: 'Poppins',
                           ),
@@ -383,8 +385,8 @@ class _GoalCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Rp${quest.targetAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
+                          style: TextStyle(
+                            color: context.text,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             fontFamily: 'Poppins',
@@ -400,7 +402,7 @@ class _GoalCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     backgroundColor: AppColors.textSecondary.withOpacity(0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor()),
+                    valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor(context)),
                     minHeight: 12,
                   ),
                 ),
@@ -414,7 +416,7 @@ class _GoalCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             decoration: BoxDecoration(
-              color: AppColors.darkBg.withOpacity(0.5),
+              color: context.bg.withOpacity(0.5),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(18),
                 bottomRight: Radius.circular(18),
@@ -447,18 +449,18 @@ class _GoalCard extends StatelessWidget {
                     onPressed: () {
                       _showAddFundsDialog(context);
                     },
-                    icon: const Icon(Icons.add, size: 18, color: AppColors.darkBg,),
-                    label: const Text(
-                      'Tambah Dana',
+                    icon: Icon(Icons.add, size: 18, color: context.bg,),
+                    label: Text(
+                      'addFunds'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Poppins',
-                        color: AppColors.darkBg,
+                        color: context.bg,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryNeon,
+                      backgroundColor: context.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -479,16 +481,16 @@ class _GoalCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: context.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.add_circle, color: AppColors.primaryNeon),
-            SizedBox(width: 10),
+            Icon(Icons.add_circle, color: context.primary),
+            const SizedBox(width: 10),
             Text(
-              'Tambah Dana',
+              'addFunds'.tr(),
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.text,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
               ),
@@ -499,9 +501,9 @@ class _GoalCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Target: ${quest.title}',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              '${'target'.tr()}: ${quest.title}',
+              style: TextStyle(
+                color: context.textDim,
                 fontFamily: 'Poppins',
               ),
             ),
@@ -509,26 +511,26 @@ class _GoalCard extends StatelessWidget {
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(
-                color: AppColors.primaryNeon, 
+              style: TextStyle(
+                color: context.primary, 
                 fontSize: 24, 
                 fontWeight: FontWeight.bold
               ),
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: '0',
-                hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
+                hintStyle: TextStyle(color: context.textDim.withOpacity(0.5)),
                 prefixText: 'Rp ',
-                prefixStyle: const TextStyle(
-                  color: AppColors.primaryNeon, 
+                prefixStyle: TextStyle(
+                  color: context.primary, 
                   fontSize: 24, 
                   fontWeight: FontWeight.bold
                 ),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.3)),
+                  borderSide: BorderSide(color: context.textDim.withOpacity(0.3)),
                 ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.primaryNeon, width: 2),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: context.primary, width: 2),
                 ),
               ),
             ),
@@ -544,9 +546,9 @@ class _GoalCard extends StatelessWidget {
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: const Text(
-                    'Batal',
-                    style: TextStyle(
+                  child: Text(
+                    'cancel'.tr(),
+                    style: const TextStyle(
                       color: AppColors.error,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
@@ -574,29 +576,29 @@ class _GoalCard extends StatelessWidget {
                       
                       context.read<NotificationProvider>().addNotification(
                         NotificationModel(
-                          title: 'Dana Ditambahkan',
-                          message: 'Rp${amount.toStringAsFixed(0)} ditambahkan ke target "${quest.title}"',
+                          title: 'fundsAddedTitle'.tr(),
+                          message: 'fundsAddedDesc'.tr(args: [amount.toStringAsFixed(0), quest.title]),
                           type: NotificationType.system,
                         ),
                       );
 
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Dana berhasil ditambahkan!')),
+                        SnackBar(content: Text('fundsAddedSuccess'.tr())),
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryNeon,
+                    backgroundColor: context.primary,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    'Simpan',
+                  child: Text(
+                    'save'.tr(),
                     style: TextStyle(
-                      color: AppColors.darkBg,
+                      color: context.bg,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                     ),
@@ -625,10 +627,10 @@ class _GoalCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
     switch (quest.status) {
       case QuestStatus.active:
-        return AppColors.primaryNeon;
+        return context.primary;
       case QuestStatus.completed:
         return AppColors.success;
       case QuestStatus.failed:
@@ -639,11 +641,11 @@ class _GoalCard extends StatelessWidget {
   String _getStatusText() {
     switch (quest.status) {
       case QuestStatus.active:
-        return 'SEDANG BERJALAN';
+        return 'onGoing'; 
       case QuestStatus.completed:
-        return 'TERCAPAI';
+        return 'completedQuest';
       case QuestStatus.failed:
-        return 'GAGAL';
+        return 'failedQuest';
     }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import 'verify_reset_code_screen.dart';
 
@@ -44,23 +46,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   hintText: AppStrings.email,
-                  hintStyle: const TextStyle(color: AppColors.textSecondary),
-                  prefixIcon: const Icon(Icons.email, color: AppColors.primaryNeon),
+                  hintStyle: TextStyle(color: context.textDim),
+                  prefixIcon: Icon(Icons.email, color: context.primary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primaryNeon,
+                    borderSide: BorderSide(
+                      color: context.primary,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primaryNeon,
+                    borderSide: BorderSide(
+                      color: context.primary,
                       width: 1.5,
                     ),
                   ),
                 ),
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(color: context.text),
               ),
               const SizedBox(height: 20),
               Consumer<AuthProvider>(
@@ -69,7 +71,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryNeon,
+                        backgroundColor: context.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -120,19 +122,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               }
                             },
                       child: authProvider.isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.darkBg,
+                                  context.bg,
                                 ),
                               ),
                             )
-                          : const Text(
+                          : Text(
                               AppStrings.resetPassword,
                               style: TextStyle(
-                                color: AppColors.darkBg,
+                                color: context.bg,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 fontFamily: 'Poppins',

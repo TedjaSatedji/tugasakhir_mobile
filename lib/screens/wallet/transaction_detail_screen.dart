@@ -7,6 +7,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 
@@ -19,12 +21,12 @@ class TransactionDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
     final color = isIncome ? AppColors.success : AppColors.error;
-    final typeLabel = isIncome ? 'Pemasukan' : 'Pengeluaran';
+    final typeLabel = isIncome ? 'income'.tr() : 'expense'.tr();
     final sign = isIncome ? '+' : '-';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Transaksi'),
+        title: Text('transactionDetail'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -36,27 +38,27 @@ class TransactionDetailScreen extends StatelessWidget {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  backgroundColor: AppColors.darkCard,
-                  title: const Text(
-                    'Hapus Transaksi?',
+                  backgroundColor: context.card,
+                  title: Text(
+                    'deleteTransactionTitle'.tr(),
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: context.text,
                       fontFamily: 'Poppins',
                     ),
                   ),
-                  content: const Text(
-                    'Transaksi yang dihapus tidak dapat dikembalikan.',
+                  content: Text(
+                    'deleteTransactionDesc'.tr(),
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.textDim,
                       fontFamily: 'Poppins',
                     ),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      child: Text(
+                        'cancel'.tr(),
+                        style: TextStyle(color: context.textDim),
                       ),
                     ),
                     ElevatedButton(
@@ -64,9 +66,9 @@ class TransactionDetailScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.error,
                       ),
-                      child: const Text(
-                        'Hapus',
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        'delete'.tr(),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ],
@@ -79,7 +81,7 @@ class TransactionDetailScreen extends StatelessWidget {
                     .deleteTransaction(transaction.id);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Transaksi dihapus')),
+                  SnackBar(content: Text('transactionDeleted'.tr())),
                 );
               }
             },
@@ -146,51 +148,51 @@ class TransactionDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.darkCard,
+                color: context.card,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.primaryNeon.withOpacity(0.2),
+                  color: context.primary.withOpacity(0.2),
                 ),
               ),
               child: Column(
                 children: [
                   _DetailRow(
                     icon: Icons.description,
-                    label: 'Deskripsi',
+                    label: 'description'.tr(),
                     value: transaction.description.isEmpty
-                        ? 'Tidak ada deskripsi'
+                        ? 'noDescription'.tr()
                         : transaction.description,
                   ),
-                  const Divider(color: AppColors.textSecondary, height: 30),
+                  Divider(color: context.textDim, height: 30),
                   _DetailRow(
                     icon: Icons.calendar_today,
-                    label: 'Tanggal',
+                    label: 'date'.tr(),
                     value: DateFormat('dd MMMM yyyy, HH:mm')
                         .format(transaction.timestamp),
                   ),
                   if (transaction.category != null) ...[
-                    const Divider(color: AppColors.textSecondary, height: 30),
+                    Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.category,
-                      label: 'Kategori',
+                      label: 'category'.tr(),
                       value: _getCategoryLabel(transaction.category!),
                     ),
                   ],
                   if (transaction.detectedCategory != null &&
                       transaction.detectedCategory!.isNotEmpty) ...[
-                    const Divider(color: AppColors.textSecondary, height: 30),
+                    Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.auto_fix_high,
-                      label: 'Kategori AI',
+                      label: 'aiCategory'.tr(),
                       value: transaction.detectedCategory!,
                     ),
                   ],
                   if (transaction.locationName != null &&
                       transaction.locationName!.isNotEmpty) ...[
-                    const Divider(color: AppColors.textSecondary, height: 30),
+                    Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.location_on,
-                      label: 'Lokasi',
+                      label: 'location'.tr(),
                       value: transaction.locationName!,
                     ),
                   ],
@@ -201,12 +203,13 @@ class TransactionDetailScreen extends StatelessWidget {
             // Mini Map
             if (transaction.latitude != null && transaction.longitude != null) ...[
               const SizedBox(height: 25),
-              const Text(
-                'Lokasi Transaksi',
+              Text(
+                'transactionLocation'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Poppins',
+                  color: context.text,
                 ),
               ),
               const SizedBox(height: 12),
@@ -256,12 +259,13 @@ class TransactionDetailScreen extends StatelessWidget {
             if (transaction.receiptImageUrl != null &&
                 transaction.receiptImageUrl!.isNotEmpty) ...[
               const SizedBox(height: 25),
-              const Text(
-                'Foto Struk',
+              Text(
+                'receiptPhoto'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Poppins',
+                  color: context.text,
                 ),
               ),
               const SizedBox(height: 12),
@@ -274,30 +278,30 @@ class TransactionDetailScreen extends StatelessWidget {
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         height: 150,
-                        color: AppColors.darkCard,
-                        child: const Center(child: CircularProgressIndicator(color: AppColors.primaryNeon)),
+                        color: context.card,
+                        child: Center(child: CircularProgressIndicator(color: context.primary)),
                       ),
                       errorWidget: (context, url, error) {
                         return Container(
                           height: 150,
                           decoration: BoxDecoration(
-                            color: AppColors.darkCard,
+                            color: context.card,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.broken_image,
-                                  color: AppColors.textSecondary,
+                                  color: context.textDim,
                                   size: 40,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
-                                  'Gambar tidak tersedia',
+                                  'imageNotAvailable'.tr(),
                                   style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: context.textDim,
                                     fontFamily: 'Poppins',
                                   ),
                                 ),
@@ -315,23 +319,23 @@ class TransactionDetailScreen extends StatelessWidget {
                         return Container(
                           height: 150,
                           decoration: BoxDecoration(
-                            color: AppColors.darkCard,
+                            color: context.card,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.broken_image,
-                                  color: AppColors.textSecondary,
+                                  color: context.textDim,
                                   size: 40,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
-                                  'Gambar tidak tersedia',
+                                  'imageNotAvailable'.tr(),
                                   style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: context.textDim,
                                     fontFamily: 'Poppins',
                                   ),
                                 ),
@@ -387,7 +391,7 @@ class _DetailRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.primaryNeon, size: 20),
+        Icon(icon, color: context.primary, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -395,19 +399,20 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                   fontFamily: 'Poppins',
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   fontFamily: 'Poppins',
+                  color: context.text,
                 ),
               ),
             ],

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/character_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.profileTitle),
+        title: Text('profileTitle'.tr()),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -51,10 +53,11 @@ class ProfileScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   character?.name ?? 'Hero',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Poppins',
+                                    color: context.text,
                                   ),
                                 ),
                                 const SizedBox(height: 5),
@@ -85,10 +88,10 @@ class ProfileScreen extends StatelessWidget {
                                   ? (character!.avatarUrl.startsWith('http')
                                       ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
                                       : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
-                                  : const Icon(
+                                  : Icon(
                                       Icons.person,
                                       size: 40,
-                                      color: AppColors.primaryNeon,
+                                      color: context.primary,
                                     ),
                             ),
                           ),
@@ -99,7 +102,7 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _InfoTile(
-                              label: 'Level',
+                              label: 'level'.tr(),
                               value: '${character?.level ?? 1}',
                               color: AppColors.levelUpColor,
                             ),
@@ -107,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _InfoTile(
-                              label: 'XP',
+                              label: 'experience'.tr(),
                               value: '${character?.totalXP ?? 0}',
                               color: AppColors.xpColor,
                             ),
@@ -139,9 +142,10 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.edit),
-                label: const Text(AppStrings.editProfile),
+                label: Text('editProfile'.tr()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryNeon,
+                  backgroundColor: context.primary,
+                  foregroundColor: context.bg,
                 ),
               ),
             ),
@@ -153,9 +157,10 @@ class ProfileScreen extends StatelessWidget {
                   context.read<AuthProvider>().logout();
                 },
                 icon: const Icon(Icons.logout),
-                label: const Text(AppStrings.logout),
+                label: Text('logout'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
@@ -182,7 +187,7 @@ class _InfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
@@ -190,9 +195,9 @@ class _InfoTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.textSecondary,
+              color: context.textDim,
               fontFamily: 'Poppins',
             ),
           ),
@@ -235,7 +240,7 @@ class _StatRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -243,9 +248,10 @@ class _StatRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'Poppins',
+              color: context.text,
             ),
           ),
           Container(

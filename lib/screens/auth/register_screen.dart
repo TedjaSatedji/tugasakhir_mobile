@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -38,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.registerTitle),
+        title: Text('registerTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -57,24 +59,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   decoration: InputDecoration(
                     hintText: AppStrings.email,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.email,
-                        color: AppColors.primaryNeon),
+                    hintStyle: TextStyle(color: context.textDim),
+                    prefixIcon: Icon(Icons.email, color: context.primary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                         width: 1.5,
                       ),
                     ),
                   ),
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: context.text),
                 ),
                 const SizedBox(height: 20),
 
@@ -84,15 +85,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: AppStrings.password,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.lock,
-                        color: AppColors.primaryNeon),
+                    hintStyle: TextStyle(color: context.textDim),
+                    prefixIcon: Icon(Icons.lock, color: context.primary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: AppColors.primaryNeon,
+                        color: context.primary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -102,19 +102,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                         width: 1.5,
                       ),
                     ),
                   ),
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: context.text),
                 ),
                 const SizedBox(height: 20),
 
@@ -124,15 +124,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     hintText: AppStrings.confirmPassword,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: const Icon(Icons.lock,
-                        color: AppColors.primaryNeon),
+                    hintStyle: TextStyle(color: context.textDim),
+                    prefixIcon: Icon(Icons.lock, color: context.primary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: AppColors.primaryNeon,
+                        color: context.primary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -143,19 +142,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryNeon,
+                      borderSide: BorderSide(
+                        color: context.primary,
                         width: 1.5,
                       ),
                     ),
                   ),
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: context.text),
                 ),
                 const SizedBox(height: 30),
 
@@ -165,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryNeon,
+                      backgroundColor: context.primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -221,10 +220,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
                       }
                     },
-                    child: const Text(
-                      AppStrings.register,
+                    child: Text(
+                      'registerTitle'.tr(),
                       style: TextStyle(
-                        color: AppColors.darkBg,
+                        color: context.bg,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         fontFamily: 'Poppins',

@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/receipt_ai_service.dart';
 import '../../models/transaction_model.dart';
@@ -57,7 +59,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Transaksi'),
+        title: Text('addTransaction'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -69,11 +71,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Type Selection
-            const Text(
-              'Tipe Transaksi',
+            Text(
+              'transactionType'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
@@ -109,27 +112,31 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 25),
 
             // Amount
-            const Text(
-              'Jumlah (Rp)',
+            Text(
+              'amountRp'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
+              style: TextStyle(color: context.text),
               decoration: InputDecoration(
                 hintText: '0',
+                hintStyle: TextStyle(color: context.textDim),
                 prefixText: 'Rp ',
+                prefixStyle: TextStyle(color: context.text),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryNeon,
+                  borderSide: BorderSide(
+                    color: context.primary,
                     width: 1.5,
                   ),
                 ),
@@ -138,26 +145,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 20),
 
             // Description
-            const Text(
-              'Deskripsi',
+            Text(
+              'description'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _descriptionController,
               maxLines: 3,
+              style: TextStyle(color: context.text),
               decoration: InputDecoration(
-                hintText: 'Masukkan deskripsi transaksi',
+                hintText: 'noDescription'.tr(),
+                hintStyle: TextStyle(color: context.textDim),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryNeon,
+                  borderSide: BorderSide(
+                    color: context.primary,
                     width: 1.5,
                   ),
                 ),
@@ -166,11 +176,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 20),
 
             // Date Picker
-            const Text(
-              'Tanggal',
+            Text(
+              'date'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
@@ -181,31 +192,32 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.primaryNeon,
+                    color: context.primary,
                     width: 1.5,
                   ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: AppColors.primaryNeon, size: 20),
+                    Icon(Icons.calendar_today, color: context.primary, size: 20),
                     const SizedBox(width: 12),
                     Text(
                       DateFormat('dd MMMM yyyy').format(_selectedDate),
-                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 15, color: context.text),
                     ),
                     const Spacer(),
-                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                    Icon(Icons.arrow_drop_down, color: context.textDim),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
 
-            const Text(
-              'Foto (Opsional)',
+            Text(
+              'optionalPhoto'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
@@ -215,10 +227,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _pickReceiptImage,
                     icon: const Icon(Icons.photo_library),
-                    label: const Text('Pilih Foto'),
+                    label: Text('pickPhoto'.tr()),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryNeon,
-                      side: const BorderSide(color: AppColors.primaryNeon),
+                      foregroundColor: context.primary,
+                      side: BorderSide(color: context.primary),
                     ),
                   ),
                 ),
@@ -233,10 +245,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.auto_fix_high),
-                    label: Text(_isScanning ? 'Memindai...' : 'Scan'),
+                    label: Text(_isScanning ? 'scanning'.tr() : 'scan'.tr()),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.secondaryNeon,
-                      side: const BorderSide(color: AppColors.secondaryNeon),
+                      foregroundColor: Theme.of(context).colorScheme.secondary,
+                      side: BorderSide(color: Theme.of(context).colorScheme.secondary),
                     ),
                   ),
                 ),
@@ -270,24 +282,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
             // Category (for expense only)
             if (_selectedType == TransactionType.expense) ...[
-              const Text(
-                AppStrings.expenseCategory,
+              Text(
+                'category'.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Poppins',
+                  color: context.text,
                 ),
               ),
               const SizedBox(height: 10),
               DropdownButton<ExpenseCategory>(
                 value: _selectedCategory,
                 isExpanded: true,
+                dropdownColor: context.card,
+                style: TextStyle(color: context.text, fontFamily: 'Poppins'),
                 items: ExpenseCategory.values
                     .map((category) => DropdownMenuItem(
                           value: category,
                           child: Text(
                             category.name.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
+                              color: context.text,
                             ),
                           ),
                         ))
@@ -302,11 +318,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ],
 
             // Location Button
-            const Text(
-              'Lokasi (Opsional)',
+            Text(
+              'optionalLocation'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
@@ -353,10 +370,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.my_location),
-                label: Text(_isLocating ? 'Mendapatkan lokasi...' : 'Tambah Lokasi'),
+                label: Text(_isLocating ? 'gettingLocation'.tr() : 'addLocation'.tr()),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primaryNeon,
-                  side: const BorderSide(color: AppColors.primaryNeon),
+                  foregroundColor: context.primary,
+                  side: BorderSide(color: context.primary),
                   minimumSize: const Size(double.infinity, 44),
                 ),
               ),
@@ -376,8 +393,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 onPressed: () async {
                   if (_amountController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Jumlah tidak boleh kosong'),
+                      SnackBar(
+                        content: Text('amountCannotBeEmpty'.tr()),
                       ),
                     );
                     return;
@@ -423,16 +440,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          AppStrings.successAddTransactionMessage),
+                    SnackBar(
+                      content: Text('transactionSuccess'.tr()),
                     ),
                   );
                 },
-                child: const Text(
-                  'Simpan Transaksi',
+                child: Text(
+                  'saveTransaction'.tr(),
                   style: TextStyle(
-                    color: AppColors.darkBg,
+                    color: context.bg,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
                   ),
@@ -464,7 +480,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Future<void> _scanReceipt() async {
     if (_receiptImagePath == null || _receiptImagePath!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih foto terlebih dahulu')),
+        SnackBar(content: Text('selectPhotoFirst'.tr())),
       );
       return;
     }
@@ -503,7 +519,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data otomatis terisi')),
+        SnackBar(content: Text('autoFilled'.tr())),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -537,11 +553,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primaryNeon,
-              onPrimary: AppColors.darkBg,
-              surface: AppColors.darkCard,
-              onSurface: AppColors.textPrimary,
+            colorScheme: ColorScheme.dark(
+              primary: context.primary,
+              onPrimary: context.bg,
+              surface: context.card,
+              onSurface: context.text,
             ),
           ),
           child: child!,
@@ -563,7 +579,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       if (position == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tidak dapat mendapatkan lokasi')),
+            SnackBar(content: Text('cannotGetLocation'.tr())),
           );
         }
         return;
@@ -613,10 +629,10 @@ class _TypeButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : AppColors.darkCard,
+          color: isSelected ? color.withOpacity(0.2) : context.card,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : AppColors.textSecondary,
+            color: isSelected ? color : context.textDim,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -624,7 +640,7 @@ class _TypeButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? color : AppColors.textSecondary,
+              color: isSelected ? color : context.textDim,
               fontWeight: FontWeight.bold,
               fontFamily: 'Poppins',
             ),

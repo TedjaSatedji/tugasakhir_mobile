@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/quest_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
@@ -92,13 +94,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.add_card, color: AppColors.darkBg),
-            SizedBox(width: 10),
+            const Icon(Icons.add_card, color: AppColors.darkBg),
+            const SizedBox(width: 10),
             Text(
-              '📳 Shake detected — Tambah Transaksi!',
-              style: TextStyle(
+              'shakeToAddTransaction'.tr(),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
                 color: AppColors.darkBg,
@@ -130,34 +132,34 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.darkBg,
-        selectedItemColor: AppColors.primaryNeon,
-        unselectedItemColor: AppColors.textSecondary,
+        backgroundColor: context.card,
+        selectedItemColor: context.primary,
+        unselectedItemColor: context.textDim,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: AppStrings.homeTitle,
+            icon: const Icon(Icons.home),
+            label: 'homeTitle'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.track_changes),
-            label: 'Target',
+            icon: const Icon(Icons.track_changes),
+            label: 'target'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.wallet),
-            label: AppStrings.walletTitle,
+            icon: const Icon(Icons.wallet),
+            label: 'walletTitle'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: AppStrings.profileTitle,
+            icon: const Icon(Icons.person),
+            label: 'profileTitle'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: AppStrings.settingsTitle,
+            icon: const Icon(Icons.settings),
+            label: 'settingsTitle'.tr(),
           ),
         ],
       ),
@@ -173,7 +175,7 @@ class _HomeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.homeTitle),
+        title: Text('homeTitle'.tr()),
         actions: [
           Consumer<NotificationProvider>(
             builder: (context, notifProvider, _) {
@@ -219,8 +221,8 @@ class _HomeBody extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: onRefresh,
-        backgroundColor: AppColors.darkCard,
-        color: AppColors.primaryNeon,
+        backgroundColor: context.card,
+        color: context.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(20),
@@ -231,10 +233,10 @@ class _HomeBody extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: AppColors.darkCard,
+                color: context.card,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: AppColors.primaryNeon.withOpacity(0.3),
+                  color: context.primary.withOpacity(0.3),
                 ),
               ),
               child: Consumer<CharacterProvider>(
@@ -254,9 +256,9 @@ class _HomeBody extends StatelessWidget {
                               ? (char!.avatarUrl.startsWith('http')
                                   ? CachedNetworkImage(imageUrl: char.avatarUrl, fit: BoxFit.cover)
                                   : Image.file(File(char.avatarUrl), fit: BoxFit.cover))
-                              : const Icon(
+                              : Icon(
                                   Icons.person,
-                                  color: AppColors.primaryNeon,
+                                  color: context.primary,
                                 ),
                         ),
                       ),
@@ -266,11 +268,12 @@ class _HomeBody extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Halo, ${char?.name ?? 'Hero'}!',
-                              style: const TextStyle(
+                              'hello'.tr(args: [char?.name ?? 'Hero']),
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Poppins',
+                                color: context.text,
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -319,12 +322,13 @@ class _HomeBody extends StatelessWidget {
             const SizedBox(height: 30),
 
             // Financial Overview
-            const Text(
-              'Ringkasan Keuangan',
+            Text(
+              'financialOverview'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 15),
@@ -344,21 +348,21 @@ class _HomeBody extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        AppStrings.totalSavings,
+                      Text(
+                        'totalSavings'.tr(),
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textPrimary,
+                          color: context.text,
                           fontFamily: 'Poppins',
                         ),
                       ),
                       const SizedBox(height: 5),
                       Text(
                         'Rp${transProvider.balance.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primaryNeon,
+                          color: context.primary,
                           fontFamily: 'Poppins',
                         ),
                       ),
@@ -367,7 +371,7 @@ class _HomeBody extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _MiniStatCard(
-                              title: AppStrings.income,
+                              title: 'income'.tr(),
                               amount: 'Rp${transProvider.totalIncome.toStringAsFixed(0)}',
                               icon: Icons.arrow_downward,
                               color: AppColors.success,
@@ -376,7 +380,7 @@ class _HomeBody extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _MiniStatCard(
-                              title: AppStrings.expense,
+                              title: 'expense'.tr(),
                               amount: 'Rp${transProvider.totalExpense.toStringAsFixed(0)}',
                               icon: Icons.arrow_upward,
                               color: AppColors.error,
@@ -392,12 +396,13 @@ class _HomeBody extends StatelessWidget {
             const SizedBox(height: 30),
 
             // Daily Missions
-            const Text(
-              'Misi Harian',
+            Text(
+              'dailyQuest'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 15),
@@ -410,7 +415,7 @@ class _HomeBody extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Text(
-                        'Belum ada misi hari ini',
+                        'noMissionToday'.tr(),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontFamily: 'Poppins',
@@ -453,7 +458,7 @@ class _MiniStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.darkBg.withOpacity(0.5),
+        color: context.bg.withOpacity(0.5),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -466,9 +471,9 @@ class _MiniStatCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: AppColors.textSecondary,
+                    color: context.textDim,
                     fontFamily: 'Poppins',
                   ),
                 ),
@@ -502,12 +507,12 @@ class _DailyMissionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: mission.isCompleted 
               ? AppColors.success.withOpacity(0.5) 
-              : AppColors.primaryNeon.withOpacity(0.3),
+              : context.primary.withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -522,7 +527,7 @@ class _DailyMissionTile extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
                     decoration: mission.isCompleted ? TextDecoration.lineThrough : null,
-                    color: mission.isCompleted ? AppColors.textSecondary : AppColors.textPrimary,
+                    color: mission.isCompleted ? context.textDim : context.text,
                   ),
                 ),
                 const SizedBox(height: 5),
