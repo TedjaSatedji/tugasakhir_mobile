@@ -11,6 +11,7 @@ import 'providers/transaction_provider.dart';
 import 'providers/character_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/stats_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/app_lock_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -81,6 +82,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CharacterProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => StatsProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

@@ -16,6 +16,7 @@ import '../../providers/transaction_provider.dart';
 import '../wallet/wallet_screen.dart';
 import '../wallet/add_transaction_screen.dart';
 import '../quest/quest_list_screen.dart';
+import '../stats/stats_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../../providers/notification_provider.dart';
@@ -48,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _screens = [
       _HomeBody(onRefresh: _refreshData),
+      const StatsScreen(),
       const QuestListScreen(),
       const WalletScreen(),
       const ProfileScreen(),
@@ -147,12 +149,16 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'homeTitle'.tr(),
           ),
           BottomNavigationBarItem(
+            icon: const Icon(Icons.wallet),
+            label: 'walletTitle'.tr(),
+          ),
+          BottomNavigationBarItem(
             icon: const Icon(Icons.track_changes),
             label: 'target'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.wallet),
-            label: 'walletTitle'.tr(),
+            icon: const Icon(Icons.bar_chart_rounded),
+            label: 'statsTitle'.tr(),
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.person),
