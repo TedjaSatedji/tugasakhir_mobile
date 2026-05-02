@@ -269,13 +269,80 @@ class _WalletScreenState extends State<WalletScreen> {
                       );
                     }
                     
+                    // Group transactions by date
+                    final Map<String, List<TransactionModel>> groupedTransactions = {};
+                    for (var t in filteredTransactions) {
+                      final dateStr = DateFormat('yyyy-MM-dd').format(t.timestamp);
+                      if (!groupedTransactions.containsKey(dateStr)) {
+                        groupedTransactions[dateStr] = [];
+                      }
+                      groupedTransactions[dateStr]!.add(t);
+                    }
+
+                    // Sort dates descending
+                    final sortedDates = groupedTransactions.keys.toList()
+                      ..sort((a, b) => b.compareTo(a));
+
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filteredTransactions.length,
+                      itemCount: sortedDates.length,
                       itemBuilder: (context, index) {
-                        final transaction = filteredTransactions[index];
-                        return _TransactionTile(transaction: transaction);
+                        final date = sortedDates[index];
+                        final transactionsForDate = groupedTransactions[date]!;
+                        
+                        // Calculate total for the date (assuming expense is negative effect, income is positive)
+                        // The image shows total for the day. Typically it's just sum of amounts or income-expense.
+                        // We will show the absolute spending for that day or net amount.
+                        // In the image, expenses sum up. Let's calculate net total for the day.
+                        double dailyTotal = 0;
+                        for (var t in transactionsForDate) {
+                          if (t.type == TransactionType.expense) {
+                            dailyTotal -= t.amount;
+                          } else if (t.type == TransactionType.income) {
+                            dailyTotal += t.amount;
+                          }
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: context.card.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    date,
+                                    style: const TextStyle(
+                                      color: AppColors.primaryNeon,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      fontFamily: 'Poppins',
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${dailyTotal < 0 ? '-' : ''}Rp ${NumberFormat('#,##0', 'en_US').format(dailyTotal.abs())}',
+                                    style: TextStyle(
+                                      color: context.textDim,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      fontFamily: 'Poppins',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ...transactionsForDate.map((t) => _TransactionTile(transaction: t)),
+                            const SizedBox(height: 8),
+                          ],
+                        );
                       },
                     );
                   }

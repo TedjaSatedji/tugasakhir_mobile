@@ -18,7 +18,7 @@ import '../wallet/add_transaction_screen.dart';
 import '../quest/quest_list_screen.dart';
 import '../stats/stats_screen.dart';
 import '../profile/profile_screen.dart';
-import '../settings/settings_screen.dart';
+import '../games/budget_invaders_screen.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
 import '../../core/services/sync_service.dart';
@@ -49,11 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _screens = [
       _HomeBody(onRefresh: _refreshData),
-      const StatsScreen(),
-      const QuestListScreen(),
       const WalletScreen(),
+      const QuestListScreen(),
+      const StatsScreen(),
       const ProfileScreen(),
-      const SettingsScreen(),
+      const BudgetInvadersScreen(),
     ];
     _startShakeDetection();
 
@@ -165,8 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'profileTitle'.tr(),
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.settings),
-            label: 'settingsTitle'.tr(),
+            icon: const Icon(Icons.videogame_asset_rounded),
+            label: 'game'.tr(),
           ),
         ],
       ),

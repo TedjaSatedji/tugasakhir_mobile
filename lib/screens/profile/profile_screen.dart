@@ -11,6 +11,7 @@ import '../../providers/character_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'edit_profile_screen.dart';
+import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -146,6 +147,26 @@ class ProfileScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: context.primary,
                   foregroundColor: context.bg,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.settings),
+                label: Text('settingsTitle'.tr()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.card,
+                  foregroundColor: context.text,
                 ),
               ),
             ),
