@@ -10,6 +10,7 @@ import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
 import 'create_quest_screen.dart';
 import 'quest_detail_screen.dart';
+import 'package:intl/intl.dart';
 
 class QuestListScreen extends StatefulWidget {
   const QuestListScreen({super.key});
@@ -361,7 +362,7 @@ class _GoalCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Rp${quest.currentSavedAmount.toStringAsFixed(0)}',
+                          'Rp${NumberFormat('#,##0', 'en_US').format(quest.currentSavedAmount)}',
                           style: TextStyle(
                             color: _getStatusColor(context),
                             fontWeight: FontWeight.bold,
@@ -384,7 +385,7 @@ class _GoalCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Rp${quest.targetAmount.toStringAsFixed(0)}',
+                          'Rp${NumberFormat('#,##0', 'en_US').format(quest.targetAmount)}',
                           style: TextStyle(
                             color: context.text,
                             fontWeight: FontWeight.bold,
@@ -577,7 +578,7 @@ class _GoalCard extends StatelessWidget {
                       context.read<NotificationProvider>().addNotification(
                         NotificationModel(
                           title: 'fundsAddedTitle'.tr(),
-                          message: 'fundsAddedDesc'.tr(args: [amount.toStringAsFixed(0), quest.title]),
+                          message: 'fundsAddedDesc'.tr(args: [NumberFormat('#,##0', 'en_US').format(amount), quest.title]),
                           type: NotificationType.system,
                         ),
                       );

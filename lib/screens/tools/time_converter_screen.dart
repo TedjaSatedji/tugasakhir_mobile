@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TimeConverterScreen extends StatefulWidget {
   const TimeConverterScreen({super.key});
@@ -17,19 +19,19 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
     {
       'name': 'WIB (Jakarta)',
       'offset': 7,
-      'market': 'Bursa Efek Indonesia',
+      'market': 'indonesiaStockExchange',
       'icon': Icons.location_city,
     },
     {
       'name': 'WITA (Bali)',
       'offset': 8,
-      'market': 'Pasar Domestik Tengah',
+      'market': 'centralDomesticMarket',
       'icon': Icons.landscape,
     },
     {
       'name': 'WIT (Papua)',
       'offset': 9,
-      'market': 'Pasar Domestik Timur',
+      'market': 'easternDomesticMarket',
       'icon': Icons.forest,
     },
     {
@@ -76,7 +78,7 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Waktu Global'),
+        title: Text('globalTimeTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -107,21 +109,21 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Pantau Pasar Global',
-                          style: TextStyle(
+                          'monitorGlobalMarket'.tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             fontFamily: 'Poppins',
                           ),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
-                          'Ketahui waktu operasional bursa efek dan bank di seluruh dunia.',
+                          'globalMarketDesc'.tr(),
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -134,21 +136,21 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
             const SizedBox(height: 30),
 
             // Time Zones List
-            ..._timeZones.map((tz) => _buildTimeZoneCard(tz)).toList(),
+            ..._timeZones.map((tz) => _buildTimeZoneCard(context, tz)).toList(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimeZoneCard(Map<String, dynamic> tz) {
+  Widget _buildTimeZoneCard(BuildContext context, Map<String, dynamic> tz) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
+        border: Border.all(color: context.textDim.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -162,10 +164,10 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.darkBg,
+              color: context.bg,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: Icon(tz['icon'], color: AppColors.primaryNeon, size: 30),
+            child: Icon(tz['icon'], color: context.primary, size: 30),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -174,19 +176,19 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
               children: [
                 Text(
                   tz['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     fontFamily: 'Poppins',
-                    color: AppColors.textPrimary,
+                    color: context.text,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  tz['market'],
-                  style: const TextStyle(
+                  tz['market'].toString().tr(),
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: context.textDim,
                     fontFamily: 'Poppins',
                   ),
                 ),
@@ -198,19 +200,19 @@ class _TimeConverterScreenState extends State<TimeConverterScreen> {
             children: [
               Text(
                 _formatTime(_currentTime, tz['offset']),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryNeon,
+                  color: context.primary,
                   fontFamily: 'Poppins',
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 _formatDate(_currentTime, tz['offset']),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                   fontFamily: 'Poppins',
                 ),
               ),

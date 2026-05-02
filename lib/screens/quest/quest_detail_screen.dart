@@ -6,6 +6,7 @@ import '../../core/utils/time_converter.dart';
 import '../../models/quest_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
+import 'package:intl/intl.dart';
 
 class QuestDetailScreen extends StatefulWidget {
   final QuestModel quest;
@@ -119,7 +120,7 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                       child: _RewardCard(
                         icon: Icons.track_changes,
                         label: 'Target (Rp)',
-                        value: currentQuest.targetAmount.toStringAsFixed(0),
+                        value: NumberFormat('#,##0', 'en_US').format(currentQuest.targetAmount),
                         color: AppColors.primaryNeon,
                       ),
                     ),
@@ -180,7 +181,7 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Rp${currentQuest.currentSavedAmount.toStringAsFixed(0)}',
+                          'Rp${NumberFormat('#,##0', 'en_US').format(currentQuest.currentSavedAmount)}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.success,
@@ -188,7 +189,7 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                           ),
                         ),
                         Text(
-                          'Rp${currentQuest.targetAmount.toStringAsFixed(0)}',
+                          'Rp${NumberFormat('#,##0', 'en_US').format(currentQuest.targetAmount)}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.textSecondary,

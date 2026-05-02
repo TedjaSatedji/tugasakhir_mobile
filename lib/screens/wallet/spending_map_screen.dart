@@ -180,7 +180,7 @@ class _SpendingMapScreenState extends State<SpendingMapScreen> {
                   ),
                 ),
                 Text(
-                  '$sign Rp${t.amount.toStringAsFixed(0)}',
+                  '$sign Rp${NumberFormat('#,##0', 'en_US').format(t.amount)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

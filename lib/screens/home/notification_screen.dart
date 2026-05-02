@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/notification_model.dart';
 import '../../providers/notification_provider.dart';
@@ -12,17 +13,17 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifikasi'),
+        title: Text('notifications'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all, color: AppColors.primaryNeon),
             onPressed: () {
               context.read<NotificationProvider>().markAllAsRead();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Semua notifikasi ditandai sudah dibaca')),
+                SnackBar(content: Text('allNotificationsMarkedRead'.tr())),
               );
             },
-            tooltip: 'Tandai semua dibaca',
+            tooltip: 'markAllAsRead'.tr(),
           ),
         ],
       ),
@@ -40,13 +41,13 @@ class NotificationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Belum ada notifikasi',
+                    'noNotificationYet',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontFamily: 'Poppins',
                       fontSize: 18,
                     ),
-                  ),
+                  ).tr(),
                 ],
               ),
             );

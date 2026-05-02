@@ -24,6 +24,9 @@ dependencies:
   crypto: ^3.0.3
   pointycastle: ^3.7.3
   
+  # Network
+  connectivity_plus: ^6.0.3
+
   # API & Web Service
   dio: ^5.3.1
   google_generative_ai: ^0.4.0

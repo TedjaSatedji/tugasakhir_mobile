@@ -28,7 +28,7 @@ class LocalDatabase {
     final path = join(dbPath, 'tugasakhir_mobile.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await _createTransactionsTable(db);
         await _createQuestsTable(db);
@@ -43,6 +43,9 @@ class LocalDatabase {
           await db.execute('ALTER TABLE transactions ADD COLUMN latitude REAL');
           await db.execute('ALTER TABLE transactions ADD COLUMN longitude REAL');
           await db.execute('ALTER TABLE transactions ADD COLUMN locationName TEXT');
+        }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE transactions ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
         }
       },
     );
@@ -62,7 +65,8 @@ class LocalDatabase {
         detectedCategory TEXT,
         latitude REAL,
         longitude REAL,
-        locationName TEXT
+        locationName TEXT,
+        is_synced INTEGER NOT NULL DEFAULT 1
       )
     ''');
   }
@@ -126,13 +130,36 @@ class LocalDatabase {
     return rows.map((row) => TransactionModel.fromJson(row)).toList();
   }
 
-  Future<void> upsertTransaction(TransactionModel transaction) async {
+  Future<void> upsertTransaction(TransactionModel transaction, {bool isSynced = true}) async {
     final db = await database;
+    final data = transaction.toJson()
+      ..['is_synced'] = isSynced ? 1 : 0;
     await db.insert(
       'transactions',
-      transaction.toJson(),
+      data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<void> markTransactionSynced(String id) async {
+    final db = await database;
+    await db.update(
+      'transactions',
+      {'is_synced': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<TransactionModel>> getUnsyncedTransactions() async {
+    final db = await database;
+    final userId = StorageService.currentUserId;
+    final rows = await db.query(
+      'transactions',
+      where: 'userId = ? AND is_synced = 0',
+      whereArgs: [userId],
+    );
+    return rows.map((row) => TransactionModel.fromJson(row)).toList();
   }
 
   Future<void> deleteTransaction(String id) async {

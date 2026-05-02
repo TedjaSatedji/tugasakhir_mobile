@@ -124,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return Column(
                   children: [
                     _SwitchTile(
-                      title: AppStrings.enableQuickUnlock,
+                      title: 'enableQuickUnlock'.tr(),
                       value: authProvider.isLockEnabled,
                       onChanged: (value) {
                         if (value) {
@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 12),
                     _SwitchTile(
-                      title: AppStrings.enableBiometricUnlock,
+                      title: 'enableBiometricUnlock'.tr(),
                       value: authProvider.isBiometricUnlockEnabled,
                       onChanged: authProvider.isLockEnabled
                           ? (value) {

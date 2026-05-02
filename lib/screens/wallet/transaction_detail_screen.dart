@@ -111,7 +111,7 @@ class TransactionDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '$sign Rp${transaction.amount.toStringAsFixed(0)}',
+                    '$sign Rp${NumberFormat('#,##0', 'en_US').format(transaction.amount)}',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,

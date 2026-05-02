@@ -5,6 +5,7 @@ import 'dart:math';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
 import '../core/services/sync_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class DailyMission {
   final String id;
@@ -86,13 +87,13 @@ class QuestProvider extends ChangeNotifier {
     final missions = <DailyMission>[
       DailyMission(
         id: 'mission_1',
-        title: 'Catat 1 Transaksi Keuangan',
+        title: 'mission1Title'.tr(),
         xpReward: 20,
         isCompleted: savedStates['mission_1'] ?? false,
       ),
       DailyMission(
         id: 'mission_2',
-        title: 'Sisihkan uang untuk Target Tabungan',
+        title: 'mission2Title'.tr(),
         xpReward: 50,
         isCompleted: savedStates['mission_2'] ?? false,
       ),

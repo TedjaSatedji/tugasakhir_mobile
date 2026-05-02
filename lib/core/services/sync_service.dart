@@ -52,9 +52,27 @@ class SyncService {
           isCompleted: m['is_completed'],
         );
       }
+
+      // Push any entries created while offline
+      await pushPendingTransactions();
     } catch (e) {
       // Ignore 401s or network errors during sync, just stay local
       print("Sync pull failed: $e");
+    }
+  }
+
+  /// Pushes all locally saved transactions that failed to sync while offline.
+  Future<void> pushPendingTransactions() async {
+    final pending = await _db.getUnsyncedTransactions();
+    for (final t in pending) {
+      try {
+        await _dio.post('/sync/transactions', data: _transactionToServer(t));
+        await _db.markTransactionSynced(t.id);
+      } catch (e) {
+        // Still offline — leave as unsynced, will retry next time
+        print('Retry push failed for ${t.id}: $e');
+        break; // Don't hammer the server; stop on first failure
+      }
     }
   }
 
@@ -80,8 +98,11 @@ class SyncService {
   Future<void> pushTransaction(TransactionModel t) async {
     try {
       await _dio.post('/sync/transactions', data: _transactionToServer(t));
+      // Mark as synced in local DB on success
+      await _db.markTransactionSynced(t.id);
     } catch (e) {
-      print("Push transaction failed: $e");
+      print("Push transaction failed (will retry when online): $e");
+      // Leave is_synced = 0 so pushPendingTransactions retries it later
     }
   }
 

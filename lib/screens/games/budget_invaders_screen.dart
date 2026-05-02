@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/constants/app_colors.dart';
 
 // ─── Data Models ────────────────────────────────────────────────────────────
@@ -90,6 +91,10 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   late Ticker _ticker;
   Duration _lastTime = Duration.zero;
 
+  // Tilt controls
+  StreamSubscription<AccelerometerEvent>? _accelSubscription;
+  double _tiltVelocity = 0.0;
+
   // Drag controls
   double? _dragStartX;
   double _dragAccumulator = 0.0;
@@ -112,10 +117,23 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     super.initState();
     _loadHighScore();
     _ticker = createTicker(_onTick);
+
+    // Listen to accelerometer for tilt controls
+    _accelSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
+      if (_gameStarted && !_paused && !_gameOver && !_gameWon) {
+        // Tilt left/right -> change velocity.
+        // Accelerometer x axis: 
+        // Tilting right = negative x (on Android) -> positive velocity
+        _tiltVelocity = -event.x * 2.0; 
+      } else {
+        _tiltVelocity = 0.0;
+      }
+    });
   }
 
   @override
   void dispose() {
+    _accelSubscription?.cancel();
     _ticker.dispose();
     super.dispose();
   }
@@ -229,6 +247,12 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     if (_dragAccumulator != 0.0) {
       _playerX = (_playerX + _dragAccumulator).clamp(_playerW / 2, _W - _playerW / 2);
       _dragAccumulator = 0.0;
+    }
+
+    // ── Player movement via tilt (Accelerometer) ─────────────────────────
+    if (_tiltVelocity.abs() > 0.5) { // Deadzone to avoid jitter
+      final moveSpeed = (_tiltVelocity * 100).clamp(-400.0, 400.0);
+      _playerX = (_playerX + moveSpeed * dt).clamp(_playerW / 2, _W - _playerW / 2);
     }
 
     // ── Auto-shoot ───────────────────────────────────────────────────────
@@ -526,8 +550,8 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
             _buildLegend(),
             const SizedBox(height: 20),
             const Text(
-              '👆 Drag layar atau pakai tombol ◀ ▶ untuk gerak\n'
-              '🚀 Tap layar atau tombol 🚀 untuk tembak',
+              '👆 Drag layar atau miringkan HP untuk gerak\n'
+              '🚀 Jangan sampai nyawamu habis!',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 12,

@@ -11,6 +11,7 @@ import 'spending_map_screen.dart';
 import 'transaction_detail_screen.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/time_converter_screen.dart';
+import 'package:intl/intl.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -87,6 +88,7 @@ class _WalletScreenState extends State<WalletScreen> {
               children: [
                 // Balance Card
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(25),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -101,10 +103,11 @@ class _WalletScreenState extends State<WalletScreen> {
                     ),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'totalBalance'.tr(),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: context.textDim,
                           fontSize: 14,
@@ -113,7 +116,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Rp${transProvider.balance.toStringAsFixed(0)}',
+                        'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.balance)}',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -326,7 +330,7 @@ class _StatCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Rp${amount.toStringAsFixed(0)}',
+            'Rp${NumberFormat('#,##0', 'en_US').format(amount)}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -411,7 +415,7 @@ class _TransactionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '$sign Rp${transaction.amount.toStringAsFixed(0)}',
+                  '$sign Rp${NumberFormat('#,##0', 'en_US').format(transaction.amount)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

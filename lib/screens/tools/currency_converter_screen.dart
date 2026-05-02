@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/theme_extensions.dart';
+import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -56,12 +59,12 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         _convert();
       } else {
         setState(() {
-          _errorMessage = 'Gagal memuat data kurs.';
+          _errorMessage = 'failedLoadRates'.tr();
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Koneksi gagal. Periksa internet Anda.';
+        _errorMessage = 'connectionFailed'.tr();
       });
     } finally {
       setState(() {
@@ -90,7 +93,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       });
     } else {
       setState(() {
-        _errorMessage = 'Mata uang tujuan tidak didukung.';
+        _errorMessage = 'unsupportedCurrency'.tr();
       });
     }
   }
@@ -99,7 +102,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Konverter Mata Uang'),
+        title: Text('currencyConverterTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -116,35 +119,35 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primaryNeon.withOpacity(0.2),
-                    AppColors.primaryNeon.withOpacity(0.05),
+                    context.primary.withOpacity(0.2),
+                    context.primary.withOpacity(0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: AppColors.primaryNeon.withOpacity(0.3)),
+                border: Border.all(color: context.primary.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.currency_exchange, color: AppColors.primaryNeon, size: 40),
+                  Icon(Icons.currency_exchange, color: context.primary, size: 40),
                   const SizedBox(width: 15),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Siap Keliling Dunia?',
-                          style: TextStyle(
+                          'currencyBannerTitle'.tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             fontFamily: 'Poppins',
                           ),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
-                          'Kurs mata uang real-time yang diperbarui setiap hari.',
+                          'currencyBannerDesc'.tr(),
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -157,11 +160,12 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             const SizedBox(height: 40),
 
             // Amount Input
-            const Text(
-              'Jumlah',
+            Text(
+              'amount'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: context.text,
               ),
             ),
             const SizedBox(height: 10),
@@ -169,17 +173,17 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               controller: _amountController,
               keyboardType: TextInputType.number,
               onChanged: (val) => _convert(),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.text),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: AppColors.darkCard,
+                fillColor: context.card,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primaryNeon),
+                  borderSide: BorderSide(color: context.primary),
                 ),
               ),
             ),
@@ -190,7 +194,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               children: [
                 Expanded(
                   child: _CurrencySelector(
-                    label: 'Dari',
+                    label: 'from'.tr(),
                     value: _fromCurrency,
                     currencies: _currencies,
                     onChanged: (val) {
@@ -206,7 +210,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 15),
                   child: IconButton(
-                    icon: const Icon(Icons.swap_horiz, color: AppColors.primaryNeon, size: 30),
+                    icon: Icon(Icons.swap_horiz, color: context.primary, size: 30),
                     onPressed: () {
                       setState(() {
                         final temp = _fromCurrency;
@@ -219,7 +223,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 ),
                 Expanded(
                   child: _CurrencySelector(
-                    label: 'Ke',
+                    label: 'to'.tr(),
                     value: _toCurrency,
                     currencies: _currencies,
                     onChanged: (val) {
@@ -251,36 +255,36 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             Container(
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: AppColors.darkCard,
+                color: context.card,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primaryNeon.withOpacity(0.5)),
+                border: Border.all(color: context.primary.withOpacity(0.5)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryNeon.withOpacity(0.1),
+                    color: context.primary.withOpacity(0.1),
                     blurRadius: 20,
                   ),
                 ],
               ),
               child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primaryNeon),
+                  ? Center(
+                      child: CircularProgressIndicator(color: context.primary),
                     )
                   : Column(
                       children: [
-                        const Text(
-                          'Hasil Konversi',
+                        Text(
+                          'conversionResult'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: context.textDim,
                             fontFamily: 'Poppins',
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          '$_toCurrency ${_convertedAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          '$_toCurrency ${NumberFormat('#,##0.00', 'en_US').format(_convertedAmount)}',
+                          style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryNeon,
+                            color: context.primary,
                             fontFamily: 'Poppins',
                           ),
                           textAlign: TextAlign.center,
@@ -315,8 +319,8 @@ class _CurrencySelector extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: context.textDim,
             fontSize: 12,
             fontFamily: 'Poppins',
           ),
@@ -325,22 +329,25 @@ class _CurrencySelector extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
-            color: AppColors.darkCard,
+            color: context.card,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.textSecondary.withOpacity(0.3)),
+            border: Border.all(color: context.textDim.withOpacity(0.3)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.primaryNeon),
+              dropdownColor: context.card,
+              style: TextStyle(color: context.text),
+              icon: Icon(Icons.keyboard_arrow_down, color: context.primary),
               items: currencies.map((c) => DropdownMenuItem(
                 value: c,
                 child: Text(
                   c,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
+                    color: context.text,
                   ),
                 ),
               )).toList(),

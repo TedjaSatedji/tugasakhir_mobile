@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class CurrencyConverter {
   static const Map<String, double> exchangeRates = {
     'IDR': 1.0,
@@ -17,6 +19,6 @@ class CurrencyConverter {
   }
 
   static String formatCurrency(double amount, String currency) {
-    return '$currency ${amount.toStringAsFixed(2)}';
+    return '$currency ${NumberFormat('#,##0.00', 'en_US').format(amount)}';
   }
 }

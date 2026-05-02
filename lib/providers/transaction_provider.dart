@@ -79,7 +79,8 @@ class TransactionProvider extends ChangeNotifier {
     );
 
     _transactions.add(transaction);
-    await _db.upsertTransaction(transaction);
+    // Save as unsynced first; SyncService will mark it synced on successful push
+    await _db.upsertTransaction(transaction, isSynced: false);
     SyncService().pushTransaction(transaction);
     _isLoading = false;
     notifyListeners();

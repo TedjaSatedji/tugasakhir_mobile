@@ -15,7 +15,9 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/app_lock_screen.dart';
 import 'screens/home/home_screen.dart';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'core/services/api_client.dart';
+import 'core/services/sync_service.dart';
 import 'services/local_notification_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -46,6 +48,14 @@ void main() async {
     }
   };
   
+  // Listen for connectivity restoration and push any pending offline entries
+  Connectivity().onConnectivityChanged.listen((results) {
+    final isOnline = results.any((r) => r != ConnectivityResult.none);
+    if (isOnline) {
+      SyncService().pushPendingTransactions();
+    }
+  });
+
   await EasyLocalization.ensureInitialized();
   
   runApp(

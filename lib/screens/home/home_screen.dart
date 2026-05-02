@@ -22,6 +22,7 @@ import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
 import '../../core/services/sync_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -358,7 +359,7 @@ class _HomeBody extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Rp${transProvider.balance.toStringAsFixed(0)}',
+                        'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.balance)}',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -372,7 +373,7 @@ class _HomeBody extends StatelessWidget {
                           Expanded(
                             child: _MiniStatCard(
                               title: 'income'.tr(),
-                              amount: 'Rp${transProvider.totalIncome.toStringAsFixed(0)}',
+                              amount: 'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.totalIncome)}',
                               icon: Icons.arrow_downward,
                               color: AppColors.success,
                             ),
@@ -381,7 +382,7 @@ class _HomeBody extends StatelessWidget {
                           Expanded(
                             child: _MiniStatCard(
                               title: 'expense'.tr(),
-                              amount: 'Rp${transProvider.totalExpense.toStringAsFixed(0)}',
+                              amount: 'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.totalExpense)}',
                               icon: Icons.arrow_upward,
                               color: AppColors.error,
                             ),
