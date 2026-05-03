@@ -96,6 +96,9 @@ class CharacterSchema(BaseModel):
     mp: int
     avatar_url: str | None = None
     stats: dict
+    coins: int = 0
+    shop_upgrades: dict = {}
+    owned_frames: list = []
 
 
 class DailyMissionStateSchema(BaseModel):

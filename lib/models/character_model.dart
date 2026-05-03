@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'shop_item_model.dart';
+
 enum CharacterClass { warrior, mage, rogue, paladin }
 
 class CharacterModel {
@@ -11,6 +14,9 @@ class CharacterModel {
   final int mp;
   final String avatarUrl;
   final Map<String, int> stats;
+  final int coins;
+  final GameUpgrades shopUpgrades;
+  final List<String> ownedFrames;
 
   CharacterModel({
     required this.id,
@@ -23,6 +29,9 @@ class CharacterModel {
     required this.mp,
     required this.avatarUrl,
     required this.stats,
+    this.coins = 0,
+    this.shopUpgrades = const GameUpgrades(),
+    this.ownedFrames = const ['frame_neon'],
   });
 
   factory CharacterModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +46,19 @@ class CharacterModel {
       mp: json['mp'] ?? 50,
       avatarUrl: json['avatarUrl'] ?? '',
       stats: Map<String, int>.from(json['stats'] ?? {}),
+      coins: json['coins'] ?? 0,
+      shopUpgrades: json['shopUpgrades'] != null
+          ? GameUpgrades.fromJson(
+              json['shopUpgrades'] is String
+                  ? jsonDecode(json['shopUpgrades'])
+                  : Map<String, dynamic>.from(json['shopUpgrades']))
+          : const GameUpgrades(),
+      ownedFrames: json['ownedFrames'] != null
+          ? List<String>.from(
+              json['ownedFrames'] is String
+                  ? jsonDecode(json['ownedFrames'])
+                  : json['ownedFrames'])
+          : const ['frame_neon'],
     );
   }
 
@@ -52,6 +74,9 @@ class CharacterModel {
       'mp': mp,
       'avatarUrl': avatarUrl,
       'stats': stats,
+      'coins': coins,
+      'shopUpgrades': shopUpgrades.toJson(),
+      'ownedFrames': ownedFrames,
     };
   }
 
@@ -60,6 +85,9 @@ class CharacterModel {
     int? level,
     int? totalXP,
     String? avatarUrl,
+    int? coins,
+    GameUpgrades? shopUpgrades,
+    List<String>? ownedFrames,
   }) {
     return CharacterModel(
       id: id,
@@ -72,6 +100,9 @@ class CharacterModel {
       mp: mp,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       stats: stats,
+      coins: coins ?? this.coins,
+      shopUpgrades: shopUpgrades ?? this.shopUpgrades,
+      ownedFrames: ownedFrames ?? this.ownedFrames,
     );
   }
 }

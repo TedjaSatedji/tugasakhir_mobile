@@ -3,9 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/shop_item_model.dart';
+import '../../providers/shop_provider.dart';
+import '../../providers/character_provider.dart';
+import '../../widgets/coin_reward_overlay.dart';
 
 // ─── Data Models ────────────────────────────────────────────────────────────
 
@@ -112,19 +117,26 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     AppColors.levelUpColor,
   ];
 
+  // ── Upgrades loaded from ShopProvider ───────────────────────────────────
+  GameUpgrades _upgrades = const GameUpgrades();
+
   @override
   void initState() {
     super.initState();
     _loadHighScore();
     _ticker = createTicker(_onTick);
 
+    // Load game upgrades from ShopProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _upgrades = context.read<ShopProvider>().upgrades;
+      }
+    });
+
     // Listen to accelerometer for tilt controls
     _accelSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
       if (_gameStarted && !_paused && !_gameOver && !_gameWon) {
-        // Tilt left/right -> change velocity.
-        // Accelerometer x axis: 
-        // Tilting right = negative x (on Android) -> positive velocity
-        _tiltVelocity = -event.x * 2.0; 
+        _tiltVelocity = -event.x * 2.0;
       } else {
         _tiltVelocity = 0.0;
       }
@@ -154,13 +166,14 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   }
 
   void _initGame() {
+    _upgrades = context.read<ShopProvider>().upgrades; // refresh on each new game
     _playerX = _W / 2;
     _playerY = _H - 80;
     _bullets.clear();
     _particles.clear();
     _shields.clear();
     _score = 0;
-    _lives = 3;
+    _lives = 3 + _upgrades.extraLivesBonus;
     _wave = 1;
     _gameOver = false;
     _gameWon = false;
@@ -251,7 +264,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
     // ── Player movement via tilt (Accelerometer) ─────────────────────────
     if (_tiltVelocity.abs() > 0.5) { // Deadzone to avoid jitter
-      final moveSpeed = (_tiltVelocity * 100).clamp(-400.0, 400.0);
+      final moveSpeed = (_tiltVelocity * 100).clamp(-_upgrades.moveSpeedClamp, _upgrades.moveSpeedClamp);
       _playerX = (_playerX + moveSpeed * dt).clamp(_playerW / 2, _W - _playerW / 2);
     }
 
@@ -260,7 +273,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     if (_shootCooldown <= 0) _shoot();
 
     // ── Move bullets ─────────────────────────────────────────────────────
-    const bulletSpeed = 420.0;
+    final bulletSpeed = _upgrades.bulletSpeed;
     for (final b in _bullets) {
       b.y += (b.isEnemy ? 1 : -1) * bulletSpeed * dt;
     }
@@ -306,7 +319,12 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       final alive = _invaders.where((i) => i.alive).toList();
 
       if (alive.isEmpty) {
-        // Wave clear — infinite waves
+        // Wave clear — award capped coins then advance
+        final coinReward = (_wave * 5).clamp(0, 30);
+        if (mounted) {
+          context.read<CharacterProvider>().addCoins(coinReward);
+          CoinRewardOverlay.show(context, coinReward);
+        }
         _wave++;
         _spawnWave();
         _spawnShields();
@@ -375,7 +393,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   void _shoot() {
     if (_shootCooldown > 0) return;
     _bullets.add(_Bullet(x: _playerX, y: _playerY - _playerH / 2));
-    _shootCooldown = 0.3;
+    _shootCooldown = 0.3; // upgrades don't touch shoot cooldown in current scope
     HapticFeedback.selectionClick();
   }
 

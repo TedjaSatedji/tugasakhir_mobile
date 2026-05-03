@@ -16,6 +16,7 @@ import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
+import '../../widgets/coin_reward_overlay.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -419,14 +420,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     locationName: _locationName,
                   );
 
-                    await context.read<CharacterProvider>().addXpForAmount(amount);
+                  await context.read<CharacterProvider>().addXpForAmount(amount);
 
-                    // Complete daily mission and award its XP
-                  final missionXp = await context
+                    // Complete daily mission and award its XP + coins
+                  final (missionXp, missionCoins) = await context
                       .read<QuestProvider>()
                       .completeDailyMission('mission_1');
                   if (missionXp > 0) {
                     await context.read<CharacterProvider>().addXP(missionXp);
+                  }
+
+                  // Award +2 coins for logging a transaction
+                  final totalCoins = 2 + missionCoins;
+                  await context.read<CharacterProvider>().addCoins(totalCoins);
+                  if (context.mounted) {
+                    CoinRewardOverlay.show(context, totalCoins);
                   }
 
                   // Show Notification

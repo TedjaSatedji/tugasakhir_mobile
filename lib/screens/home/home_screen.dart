@@ -9,16 +9,18 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../models/quest_model.dart';
+import '../../models/quest_model.dart'; // used by _DailyMissionTile
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../widgets/level_up_overlay.dart';
 import '../wallet/wallet_screen.dart';
 import '../wallet/add_transaction_screen.dart';
 import '../quest/quest_list_screen.dart';
 import '../stats/stats_screen.dart';
 import '../profile/profile_screen.dart';
 import '../games/budget_invaders_screen.dart';
+import '../shop/shop_screen.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
 import '../../core/services/sync_service.dart';
@@ -59,6 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
+      // Listen for level-ups and show fullscreen overlay
+      final charProvider = context.read<CharacterProvider>();
+      charProvider.levelUpNotifier.addListener(() {
+        final newLevel = charProvider.levelUpNotifier.value;
+        if (newLevel != null && mounted) {
+          LevelUpOverlay.show(context, newLevel);
+          charProvider.levelUpNotifier.value = null;
+        }
+      });
     });
   }
 
@@ -317,6 +328,31 @@ class _HomeBody extends StatelessWidget {
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Coin chip — tappable → ShopScreen
+                            GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ShopScreen()),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.xpColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppColors.xpColor.withOpacity(0.4)),
+                                ),
+                                child: Text(
+                                  '🪙 ${char?.coins ?? 0}',
+                                  style: const TextStyle(
+                                    color: AppColors.xpColor,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

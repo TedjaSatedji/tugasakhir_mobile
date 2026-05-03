@@ -11,12 +11,14 @@ class DailyMission {
   final String id;
   final String title;
   final int xpReward;
+  final int coinReward;
   bool isCompleted;
 
   DailyMission({
     required this.id,
     required this.title,
     required this.xpReward,
+    required this.coinReward,
     this.isCompleted = false,
   });
 }
@@ -26,12 +28,14 @@ class QuestProgressResult {
   final int completionXp;
   final int missionXp;
   final bool completedNow;
+  final int coinReward;
 
   const QuestProgressResult({
     required this.progressXp,
     required this.completionXp,
     required this.missionXp,
     required this.completedNow,
+    this.coinReward = 0,
   });
 
   int get totalXp => progressXp + completionXp + missionXp;
@@ -41,6 +45,7 @@ class QuestProgressResult {
     completionXp: 0,
     missionXp: 0,
     completedNow: false,
+    coinReward: 0,
   );
 }
 
@@ -89,12 +94,14 @@ class QuestProvider extends ChangeNotifier {
         id: 'mission_1',
         title: 'mission1Title'.tr(),
         xpReward: 20,
+        coinReward: 10,
         isCompleted: savedStates['mission_1'] ?? false,
       ),
       DailyMission(
         id: 'mission_2',
         title: 'mission2Title'.tr(),
         xpReward: 50,
+        coinReward: 15,
         isCompleted: savedStates['mission_2'] ?? false,
       ),
     ];
@@ -117,15 +124,14 @@ class QuestProvider extends ChangeNotifier {
         '${now.day.toString().padLeft(2, '0')}';
   }
 
-  Future<int> completeDailyMission(String id) async {
+  /// Returns [xpReward, coinReward] for the completed mission, or [0, 0] if already done.
+  Future<(int, int)> completeDailyMission(String id) async {
     if (_dailyMissions.isEmpty) {
       await _loadDailyMissions();
     }
 
     final index = _dailyMissions.indexWhere((m) => m.id == id);
-    if (index == -1) {
-      return 0;
-    }
+    if (index == -1) return (0, 0);
 
     final mission = _dailyMissions[index];
     if (!mission.isCompleted) {
@@ -137,10 +143,10 @@ class QuestProvider extends ChangeNotifier {
       );
       SyncService().pushDailyMissionState(mission.id, _todayKey(), true);
       notifyListeners();
-      return mission.xpReward;
+      return (mission.xpReward, mission.coinReward);
     }
 
-    return 0;
+    return (0, 0);
   }
 
   Future<void> createQuest(
@@ -210,15 +216,19 @@ class QuestProvider extends ChangeNotifier {
     SyncService().pushQuest(_quests[index]);
 
     // Also complete the daily mission for saving money
-    final missionXp = await completeDailyMission('mission_2');
+    final (missionXp, missionCoins) = await completeDailyMission('mission_2');
 
     notifyListeners();
+
+    // Coins: +5 for adding funds, +25 if quest completed, +missionCoins if mission done
+    final totalCoins = 5 + (completedNow ? 25 : 0) + missionCoins;
 
     return QuestProgressResult(
       progressXp: 0,
       completionXp: completedNow ? quest.xpReward : 0,
       missionXp: missionXp,
       completedNow: completedNow,
+      coinReward: totalCoins,
     );
   }
 

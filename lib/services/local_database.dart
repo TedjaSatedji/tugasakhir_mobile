@@ -28,12 +28,13 @@ class LocalDatabase {
     final path = join(dbPath, 'tugasakhir_mobile.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await _createTransactionsTable(db);
         await _createQuestsTable(db);
         await _createCharacterTable(db);
         await _createDailyMissionsTable(db);
+        await _createShopPurchasesTable(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -46,6 +47,10 @@ class LocalDatabase {
         }
         if (oldVersion < 4) {
           await db.execute('ALTER TABLE transactions ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
+        }
+        if (oldVersion < 5) {
+          await db.execute('ALTER TABLE character ADD COLUMN coins INTEGER NOT NULL DEFAULT 0');
+          await _createShopPurchasesTable(db);
         }
       },
     );
@@ -102,7 +107,17 @@ class LocalDatabase {
         hp INTEGER,
         mp INTEGER,
         avatarUrl TEXT,
-        stats TEXT
+        stats TEXT,
+        coins INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+  }
+
+  Future<void> _createShopPurchasesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE shop_purchases (
+        item_id TEXT PRIMARY KEY,
+        purchased_at TEXT NOT NULL
       )
     ''');
   }
@@ -253,6 +268,24 @@ class LocalDatabase {
         'isCompleted': isCompleted ? 1 : 0,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<String>> getShopPurchases() async {
+    final db = await database;
+    final rows = await db.query('shop_purchases');
+    return rows.map((r) => r['item_id'] as String).toList();
+  }
+
+  Future<void> addShopPurchase(String itemId) async {
+    final db = await database;
+    await db.insert(
+      'shop_purchases',
+      {
+        'item_id': itemId,
+        'purchased_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 

@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -8,8 +7,9 @@ import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/character_provider.dart';
+import '../../providers/shop_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
+import '../shop/shop_screen.dart';
 import 'edit_profile_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -28,9 +28,12 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Character Info Card
-            Consumer<CharacterProvider>(
-              builder: (context, charProvider, _) {
+            Consumer2<CharacterProvider, ShopProvider>(
+              builder: (context, charProvider, shopProvider, _) {
                 final character = charProvider.character;
+                final frameColor = shopProvider.equippedFrame.isAnimated
+                    ? AppColors.primaryNeon
+                    : shopProvider.equippedFrame.color;
                 return Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -74,28 +77,31 @@ class ProfileScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primaryNeon,
-                                width: 3,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child: (character?.avatarUrl.isNotEmpty ?? false)
-                                  ? (character!.avatarUrl.startsWith('http')
-                                      ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
-                                      : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
-                                  : Icon(
-                                      Icons.person,
-                                      size: 40,
-                                      color: context.primary,
+                          // Avatar with equipped frame
+                          shopProvider.equippedFrame.isAnimated
+                              ? _AnimatedFrameAvatar(character: character)
+                              : Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: frameColor,
+                                      width: 3,
                                     ),
-                            ),
-                          ),
+                                  ),
+                                  child: ClipOval(
+                                    child: (character?.avatarUrl.isNotEmpty ?? false)
+                                        ? (character!.avatarUrl.startsWith('http')
+                                            ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
+                                            : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
+                                        : Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: context.primary,
+                                          ),
+                                  ),
+                                ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -116,7 +122,14 @@ class ProfileScreen extends StatelessWidget {
                               color: AppColors.xpColor,
                             ),
                           ),
-
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _InfoTile(
+                              label: 'Coins',
+                              value: '🪙 ${character?.coins ?? 0}',
+                              color: AppColors.xpColor,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -131,6 +144,25 @@ class ProfileScreen extends StatelessWidget {
 
 
             // Action Buttons
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ShopScreen()),
+                  );
+                },
+                icon: const Text('🛒', style: TextStyle(fontSize: 16)),
+                label: const Text('Shop', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.xpColor.withOpacity(0.15),
+                  foregroundColor: AppColors.xpColor,
+                  side: const BorderSide(color: AppColors.xpColor, width: 1),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -292,6 +324,68 @@ class _StatRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedFrameAvatar extends StatefulWidget {
+  final dynamic character;
+  const _AnimatedFrameAvatar({this.character});
+
+  @override
+  State<_AnimatedFrameAvatar> createState() => _AnimatedFrameAvatarState();
+}
+
+class _AnimatedFrameAvatarState extends State<_AnimatedFrameAvatar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = _ctrl.value;
+        final colors = [
+          Color.lerp(AppColors.primaryNeon, AppColors.secondaryNeon, t)!,
+          Color.lerp(AppColors.secondaryNeon, AppColors.levelUpColor, t)!,
+          Color.lerp(AppColors.levelUpColor, AppColors.primaryNeon, t)!,
+        ];
+        return Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: SweepGradient(colors: colors),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(3),
+            child: ClipOval(
+              child: Container(
+                color: AppColors.darkCard,
+                child: (widget.character?.avatarUrl?.isNotEmpty ?? false)
+                    ? (widget.character!.avatarUrl.startsWith('http')
+                        ? Image.network(widget.character!.avatarUrl, fit: BoxFit.cover)
+                        : Image.file(File(widget.character!.avatarUrl), fit: BoxFit.cover))
+                    : const Icon(Icons.person, size: 36, color: Colors.white54),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

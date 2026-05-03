@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../models/transaction_model.dart';
 import '../../models/quest_model.dart';
 import '../../models/character_model.dart';
+import '../../models/shop_item_model.dart';
 import '../constants/api_constants.dart';
 import 'api_client.dart';
 import 'storage_service.dart';
@@ -238,6 +239,9 @@ class SyncService {
       'mp': c.mp,
       'avatar_url': c.avatarUrl,
       'stats': c.stats,
+      'coins': c.coins,
+      'shop_upgrades': c.shopUpgrades.toJson(),
+      'owned_frames': c.ownedFrames,
     };
   }
 
@@ -253,6 +257,13 @@ class SyncService {
       mp: json['mp'] ?? 50,
       avatarUrl: json['avatar_url'] ?? '',
       stats: Map<String, int>.from(json['stats'] ?? {}),
+      coins: json['coins'] ?? 0,
+      shopUpgrades: json['shop_upgrades'] != null
+          ? GameUpgrades.fromJson(Map<String, dynamic>.from(json['shop_upgrades']))
+          : const GameUpgrades(),
+      ownedFrames: json['owned_frames'] != null
+          ? List<String>.from(json['owned_frames'])
+          : const ['frame_neon'],
     );
   }
 }

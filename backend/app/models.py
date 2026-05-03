@@ -72,6 +72,10 @@ class Character(Base):
     mp = Column(Integer, nullable=False, default=50)
     avatar_url = Column(String, nullable=True)
     stats = Column(JSON, nullable=False, default=dict)
+    # Shop / progression fields
+    coins = Column(Integer, nullable=False, default=0)
+    shop_upgrades = Column(JSON, nullable=False, default=dict)   # {"fasterShipLevel":0,...}
+    owned_frames = Column(JSON, nullable=False, default=list)    # ["frame_neon", ...]
 
     user = relationship("User", back_populates="character")
 

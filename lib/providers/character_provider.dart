@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/character_model.dart';
+import '../models/shop_item_model.dart';
 import 'package:uuid/uuid.dart';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
@@ -8,12 +9,17 @@ import '../core/services/sync_service.dart';
 class CharacterProvider extends ChangeNotifier {
   static const int baseXpPerLevel = 200;
   static const int xpIncrementPerLevel = 50;
+  static const int coinsPerLevelUp = 30;
   final LocalDatabase _db = LocalDatabase.instance;
   CharacterModel? _character;
   bool _isLoading = false;
 
+  /// Emits the new level number when a level-up occurs; reset to null after reading.
+  final ValueNotifier<int?> levelUpNotifier = ValueNotifier(null);
+
   CharacterModel? get character => _character;
   bool get isLoading => _isLoading;
+  int get coins => _character?.coins ?? 0;
 
   CharacterProvider() {
     loadCharacter();
@@ -89,12 +95,21 @@ class CharacterProvider extends ChangeNotifier {
 
   Future<void> addXP(int xp) async {
     if (_character != null) {
+      final oldLevel = _character!.level;
       int newXP = _character!.totalXP + xp;
       int newLevel = levelForXp(newXP);
-      
+
+      // Award coins and fire notifier on level-up
+      int bonusCoins = 0;
+      if (newLevel > oldLevel) {
+        bonusCoins = coinsPerLevelUp * (newLevel - oldLevel);
+        levelUpNotifier.value = newLevel;
+      }
+
       _character = _character!.copyWith(
         totalXP: newXP,
         level: newLevel,
+        coins: (_character!.coins + bonusCoins),
       );
       await _db.upsertCharacter(_character!);
       SyncService().pushCharacter(_character!);
@@ -108,6 +123,43 @@ class CharacterProvider extends ChangeNotifier {
       return;
     }
     await addXP(xp);
+  }
+
+  /// Adds coins to the character balance.
+  Future<void> addCoins(int amount) async {
+    if (_character == null || amount <= 0) return;
+    _character = _character!.copyWith(coins: _character!.coins + amount);
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+  }
+
+  /// Attempts to deduct [amount] coins. Returns false if balance is insufficient.
+  bool spendCoins(int amount) {
+    if (_character == null || _character!.coins < amount) return false;
+    _character = _character!.copyWith(coins: _character!.coins - amount);
+    _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+    return true;
+  }
+
+  /// Persists a new set of game upgrade levels to the character record.
+  Future<void> updateShopUpgrades(GameUpgrades upgrades) async {
+    if (_character == null) return;
+    _character = _character!.copyWith(shopUpgrades: upgrades);
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+  }
+
+  /// Persists the updated list of owned frame IDs to the character record.
+  Future<void> updateOwnedFrames(List<String> frames) async {
+    if (_character == null) return;
+    _character = _character!.copyWith(ownedFrames: frames);
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
   }
 
   static int levelForXp(int totalXp) {

@@ -8,6 +8,7 @@ import '../../providers/quest_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
+import '../../widgets/coin_reward_overlay.dart';
 import 'create_quest_screen.dart';
 import 'quest_detail_screen.dart';
 import 'package:intl/intl.dart';
@@ -573,6 +574,14 @@ class _GoalCard extends StatelessWidget {
                         await context
                             .read<CharacterProvider>()
                             .addXP(result.totalXp);
+                      }
+                      if (result.coinReward > 0) {
+                        await context
+                            .read<CharacterProvider>()
+                            .addCoins(result.coinReward);
+                        if (context.mounted) {
+                          CoinRewardOverlay.show(context, result.coinReward);
+                        }
                       }
                       
                       context.read<NotificationProvider>().addNotification(
