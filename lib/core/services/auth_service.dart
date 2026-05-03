@@ -98,6 +98,20 @@ class AuthService {
     }
   }
 
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      await _dio.post(
+        ApiConstants.resendVerificationPath,
+        data: {'email': email},
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['detail']?.toString() ?? 'Failed to resend verification email')
+          : 'Failed to resend verification email';
+      throw Exception(message);
+    }
+  }
+
   Future<void> requestPasswordReset(String email) async {
     try {
       await _dio.post(

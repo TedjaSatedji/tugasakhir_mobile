@@ -110,6 +110,24 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> resendVerificationEmail(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.resendVerificationEmail(email);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> requestPasswordReset(String email) async {
     _isLoading = true;
     _errorMessage = null;

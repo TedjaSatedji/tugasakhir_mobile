@@ -5,6 +5,8 @@ import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
+import '../../providers/transaction_provider.dart';
+import '../../models/transaction_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
@@ -567,6 +569,17 @@ class _GoalCard extends StatelessWidget {
                       final result = await context
                           .read<QuestProvider>()
                           .addFundsToGoal(quest.id, amount);
+                          
+                      // Log as an expense in the wallet
+                      await context.read<TransactionProvider>().addTransaction(
+                            TransactionType.expense,
+                            ExpenseCategory.other,
+                            amount,
+                            'Tabungan Target: ${quest.title}',
+                            null,
+                            timestamp: DateTime.now(),
+                          );
+
                       await context
                           .read<CharacterProvider>()
                           .addXpForAmount(amount);

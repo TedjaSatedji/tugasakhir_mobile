@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -500,18 +501,24 @@ class _HolographicPreviewState extends State<_HolographicPreview>
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {
-        final t = _ctrl.value;
+        // Hue cycles 0→360 which is perfectly periodic: hue 360 == hue 0
+        final hue = _ctrl.value * 360.0;
         final colors = [
-          Color.lerp(AppColors.primaryNeon, AppColors.secondaryNeon, t)!,
-          Color.lerp(AppColors.secondaryNeon, AppColors.levelUpColor, t)!,
-          Color.lerp(AppColors.levelUpColor, AppColors.primaryNeon, t)!,
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 90) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 180) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 270) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(), // close the loop
         ];
         return Container(
           width: 64,
           height: 64,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: SweepGradient(colors: colors),
+            gradient: SweepGradient(
+              colors: colors,
+              transform: GradientRotation(_ctrl.value * 2 * math.pi),
+            ),
           ),
           child: const Padding(
             padding: EdgeInsets.all(3),

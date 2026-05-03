@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
@@ -358,18 +359,23 @@ class _AnimatedFrameAvatarState extends State<_AnimatedFrameAvatar>
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {
-        final t = _ctrl.value;
+        final hue = _ctrl.value * 360.0;
         final colors = [
-          Color.lerp(AppColors.primaryNeon, AppColors.secondaryNeon, t)!,
-          Color.lerp(AppColors.secondaryNeon, AppColors.levelUpColor, t)!,
-          Color.lerp(AppColors.levelUpColor, AppColors.primaryNeon, t)!,
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 90) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 180) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 270) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(), // close the loop
         ];
         return Container(
           width: 80,
           height: 80,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: SweepGradient(colors: colors),
+            gradient: SweepGradient(
+              colors: colors,
+              transform: GradientRotation(_ctrl.value * 2 * math.pi),
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(3),

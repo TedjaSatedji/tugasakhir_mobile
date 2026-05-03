@@ -6,6 +6,8 @@ import '../../core/utils/time_converter.dart';
 import '../../models/quest_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
+import '../../providers/transaction_provider.dart';
+import '../../models/transaction_model.dart';
 import 'package:intl/intl.dart';
 
 class QuestDetailScreen extends StatefulWidget {
@@ -345,6 +347,17 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                   final result = await context
                       .read<QuestProvider>()
                       .addFundsToGoal(quest.id, amount);
+                      
+                  // Log as an expense in the wallet
+                  await context.read<TransactionProvider>().addTransaction(
+                        TransactionType.expense,
+                        ExpenseCategory.other,
+                        amount,
+                        'Tabungan Target: ${quest.title}',
+                        null,
+                        timestamp: selectedDate,
+                      );
+
                   await context.read<CharacterProvider>().addXpForAmount(amount);
                   if (result.totalXp > 0) {
                     await context.read<CharacterProvider>().addXP(result.totalXp);

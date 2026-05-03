@@ -9,6 +9,7 @@ import '../../core/extensions/theme_extensions.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/stats_provider.dart';
 import '../../providers/transaction_provider.dart';
+import 'transactions_list_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -627,16 +628,28 @@ class _DailyRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isToday = DateUtils.isSameDay(day.date, DateTime.now());
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.card,
-        borderRadius: BorderRadius.circular(12),
-        border: isToday
-            ? Border.all(color: context.primary.withOpacity(0.5))
-            : null,
-      ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransactionsListScreen(
+              title: DateFormat('EEE, d MMM yyyy').format(day.date),
+              filterDay: day.date,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: context.card,
+          borderRadius: BorderRadius.circular(12),
+          border: isToday
+              ? Border.all(color: context.primary.withOpacity(0.5))
+              : null,
+        ),
       child: Row(
         children: [
           Column(
@@ -696,6 +709,7 @@ class _DailyRow extends StatelessWidget {
             ),
         ],
       ),
+    ),
     );
   }
 }
@@ -709,13 +723,26 @@ class _MonthlyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final net = month.net;
     final netColor = net >= 0 ? AppColors.success : AppColors.error;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.card,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransactionsListScreen(
+              title: '${month.label} ${month.year}',
+              filterMonth: month.month,
+              filterYear: month.year,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: context.card,
+          borderRadius: BorderRadius.circular(12),
+        ),
       child: Row(
         children: [
           Text(
@@ -760,6 +787,7 @@ class _MonthlyRow extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

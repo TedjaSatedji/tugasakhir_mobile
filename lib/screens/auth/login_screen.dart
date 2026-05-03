@@ -211,9 +211,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 } else {
                                   final message = authProvider.errorMessage ??
                                       AppStrings.errorNetworkError;
+                                  final isUnverified = message.toLowerCase().contains('verif');
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(message),
+                                      action: isUnverified
+                                          ? SnackBarAction(
+                                              label: 'RESEND',
+                                              textColor: context.bg,
+                                              backgroundColor: context.primary,
+                                              onPressed: () {
+                                                _showResendVerificationDialog(context);
+                                              },
+                                            )
+                                          : null,
                                     ),
                                   );
                                 }
@@ -278,6 +289,72 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showResendVerificationDialog(BuildContext context) {
+    final emailController = TextEditingController(text: _emailController.text);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: context.bg,
+        title: Text('Resend Verification', style: TextStyle(color: context.text)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Enter your email to receive a new verification link.', style: TextStyle(color: context.textDim)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                hintText: AppStrings.email,
+                hintStyle: TextStyle(color: context.textDim),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.primary),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.primary, width: 1.5),
+                ),
+              ),
+              style: TextStyle(color: context.text),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: context.textDim)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: context.primary),
+            onPressed: () async {
+              if (emailController.text.isEmpty) return;
+              final authProvider = context.read<AuthProvider>();
+              Navigator.pop(ctx);
+              
+              // We use context from the main screen, so make sure we show a loading indicator or just handle it
+              // Since dialog is popped, we can use the original context.
+              // Wait, showing snackbar using the original context after dialog pops:
+              final success = await authProvider.resendVerificationEmail(emailController.text);
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Verification email sent! Please check your inbox.')),
+                  );
+                } else {
+                  final msg = authProvider.errorMessage ?? 'Failed to send email';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(msg)),
+                  );
+                }
+              }
+            },
+            child: Text('Send', style: TextStyle(color: context.bg)),
+          ),
+        ],
       ),
     );
   }

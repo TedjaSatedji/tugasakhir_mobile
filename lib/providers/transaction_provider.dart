@@ -35,6 +35,9 @@ class TransactionProvider extends ChangeNotifier {
     _transactions
       ..clear()
       ..addAll(items);
+    
+    // Ensure sorted by newest first
+    _transactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     _isLoading = false;
     notifyListeners();
@@ -79,6 +82,8 @@ class TransactionProvider extends ChangeNotifier {
     );
 
     _transactions.add(transaction);
+    _transactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    
     // Save as unsynced first; SyncService will mark it synced on successful push
     await _db.upsertTransaction(transaction, isSynced: false);
     SyncService().pushTransaction(transaction);
