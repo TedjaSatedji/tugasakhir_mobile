@@ -48,10 +48,10 @@ class BudgetInvadersScreen extends StatefulWidget {
   const BudgetInvadersScreen({super.key});
 
   @override
-  State<BudgetInvadersScreen> createState() => _BudgetInvadersScreenState();
+  State<BudgetInvadersScreen> createState() => BudgetInvadersScreenState();
 }
 
-class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
+class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     with TickerProviderStateMixin {
   // Game area
   double _W = 0, _H = 0;
@@ -88,7 +88,6 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   int _lives = 3;
   int _wave = 1;
   bool _gameOver = false;
-  bool _gameWon = false;
   bool _gameStarted = false;
   bool _paused = false;
 
@@ -135,7 +134,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
     // Listen to accelerometer for tilt controls
     _accelSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
-      if (_gameStarted && !_paused && !_gameOver && !_gameWon) {
+      if (_gameStarted && !_paused && !_gameOver) {
         _tiltVelocity = -event.x * 2.0;
       } else {
         _tiltVelocity = 0.0;
@@ -151,17 +150,36 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   }
 
   Future<void> _loadHighScore() async {
+    final provider = context.read<CharacterProvider>();
+    int syncedScore = provider.character?.stats['budget_invaders_high_score'] ?? 0;
+
+    // Migrate any existing old local score
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _highScore = prefs.getInt('budget_invaders_high_score') ?? 0;
-    });
+    int localScore = prefs.getInt('budget_invaders_high_score') ?? 0;
+
+    if (localScore > syncedScore) {
+      syncedScore = localScore;
+      await provider.updateStat('budget_invaders_high_score', syncedScore);
+    }
+
+    if (mounted) {
+      setState(() {
+        _highScore = syncedScore;
+      });
+    }
   }
 
   Future<void> _saveHighScore() async {
     if (_score > _highScore) {
+      final provider = context.read<CharacterProvider>();
+      await provider.updateStat('budget_invaders_high_score', _score);
+      // We can also keep a local copy for redundancy
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('budget_invaders_high_score', _score);
-      setState(() => _highScore = _score);
+      
+      if (mounted) {
+        setState(() => _highScore = _score);
+      }
     }
   }
 
@@ -176,7 +194,6 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     _lives = 3 + _upgrades.extraLivesBonus;
     _wave = 1;
     _gameOver = false;
-    _gameWon = false;
     _shootCooldown = 0;
     _dragAccumulator = 0.0;
     _dragStartX = null;
@@ -235,7 +252,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       _lastTime = elapsed;
       return;
     }
-    if (_paused || _gameOver || _gameWon || !_gameStarted) return;
+    if (_paused || _gameOver || !_gameStarted) return;
 
     final dt = (elapsed - _lastTime).inMicroseconds / 1e6;
     _lastTime = elapsed;
@@ -414,12 +431,122 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
   // ─── BUILD ────────────────────────────────────────────────────────────────
 
+  // Returns true if a game is actively running (needs confirmation to leave)
+  bool get isGameActive => _gameStarted && !_gameOver;
+
+  Future<bool> onWillPop() async {
+    return await _onWillPop();
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!isGameActive) return true;
+
+    // Pause the game while the dialog is shown
+    final wasPaused = _paused;
+    setState(() => _paused = true);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+              color: AppColors.primaryNeon.withOpacity(0.5), width: 2),
+        ),
+        title: const Text(
+          '🚀 Keluar Game?',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryNeon,
+            fontSize: 20,
+          ),
+        ),
+        content: const Text(
+          'Permainan sedang berlangsung.\nProgress kamu akan hilang jika keluar.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            color: AppColors.textSecondary,
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(
+              'Lanjut Main',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: AppColors.secondaryNeon,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // If user cancelled, restore previous pause state
+    if (confirmed != true && mounted) {
+      setState(() => _paused = wasPaused);
+    }
+
+    return confirmed == true;
+  }
+
+  void resetGame() {
+    setState(() {
+      _gameStarted = false;
+      _gameOver = false;
+      _paused = false;
+      if (_ticker.isActive) _ticker.stop();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !isGameActive,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldQuit = await _onWillPop();
+        if (shouldQuit && mounted) {
+          resetGame();
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
         backgroundColor: AppColors.darkBg,
+        leading: isGameActive
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () async {
+                  final shouldQuit = await _onWillPop();
+                  if (shouldQuit && mounted) {
+                    resetGame();
+                  }
+                },
+              )
+            : null,
         title: Row(
           children: [
             const Text('💰 Budget Invaders',
@@ -428,7 +555,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
             const Spacer(),
-            if (_gameStarted && !_gameOver && !_gameWon) ...[
+            if (_gameStarted && !_gameOver) ...[
               IconButton(
                 icon: Icon(_paused ? Icons.play_arrow : Icons.pause,
                     color: AppColors.primaryNeon),
@@ -446,18 +573,18 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
         // Wrap in GestureDetector for drag-to-move on the game canvas
         return GestureDetector(
           // Tap to shoot (when no drag detected)
-          onTap: _gameStarted && !_gameOver && !_gameWon && !_paused
+          onTap: _gameStarted && !_gameOver && !_paused
               ? () => _shoot()
               : null,
 
           // ── Drag controls ──────────────────────────────────────────────
-          onHorizontalDragStart: (_gameStarted && !_gameOver && !_gameWon && !_paused)
+          onHorizontalDragStart: (_gameStarted && !_gameOver && !_paused)
               ? (details) {
                   _dragStartX = details.localPosition.dx;
                 }
               : null,
 
-          onHorizontalDragUpdate: (_gameStarted && !_gameOver && !_gameWon && !_paused)
+          onHorizontalDragUpdate: (_gameStarted && !_gameOver && !_paused)
               ? (details) {
                   if (_dragStartX != null) {
                     final delta = details.localPosition.dx - _dragStartX!;
@@ -468,7 +595,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                 }
               : null,
 
-          onHorizontalDragEnd: (_gameStarted && !_gameOver && !_gameWon && !_paused)
+          onHorizontalDragEnd: (_gameStarted && !_gameOver && !_paused)
               ? (details) {
                   _dragStartX = null;
                   _dragAccumulator = 0.0;
@@ -507,6 +634,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                   child: _HUD(
                       score: _score,
                       lives: _lives,
+                      maxLives: 3 + _upgrades.extraLivesBonus,
                       wave: _wave,
                       highScore: _highScore),
                 ),
@@ -515,7 +643,7 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
               if (!_gameStarted) _buildStartScreen(),
 
               // Pause overlay
-              if (_paused && _gameStarted && !_gameOver && !_gameWon)
+              if (_paused && _gameStarted && !_gameOver)
                 _buildOverlay(
                     '⏸ PAUSED', 'Tap tombol play untuk lanjut', null, null),
 
@@ -523,15 +651,11 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
               if (_gameOver)
                 _buildOverlay('💥 GAME OVER',
                     'Tabunganmu diserang!\nSkor: $_score', 'Main Lagi', _initGame),
-
-              // Game won
-              if (_gameWon)
-                _buildOverlay('🏆 MENANG!',
-                    'Semua invader dikalahkan!\nSkor: $_score', 'Main Lagi', _initGame),
             ],
           ),
         );
       }),
+    ),
     );
   }
 
@@ -704,10 +828,11 @@ class _BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 // ─── HUD Widget ─────────────────────────────────────────────────────────────
 
 class _HUD extends StatelessWidget {
-  final int score, lives, wave, highScore;
+  final int score, lives, maxLives, wave, highScore;
   const _HUD(
       {required this.score,
       required this.lives,
+      required this.maxLives,
       required this.wave,
       required this.highScore});
 
@@ -737,7 +862,7 @@ class _HUD extends StatelessWidget {
         const SizedBox(width: 12),
         Row(
             children: List.generate(
-                3,
+                maxLives,
                 (i) => Text(
                       i < lives ? '❤️' : '🖤',
                       style: const TextStyle(fontSize: 16),

@@ -28,7 +28,7 @@ class LocalDatabase {
     final path = join(dbPath, 'tugasakhir_mobile.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await _createTransactionsTable(db);
         await _createQuestsTable(db);
@@ -51,6 +51,10 @@ class LocalDatabase {
         if (oldVersion < 5) {
           await db.execute('ALTER TABLE character ADD COLUMN coins INTEGER NOT NULL DEFAULT 0');
           await _createShopPurchasesTable(db);
+        }
+        if (oldVersion < 6) {
+          await db.execute('ALTER TABLE character ADD COLUMN shopUpgrades TEXT');
+          await db.execute('ALTER TABLE character ADD COLUMN ownedFrames TEXT');
         }
       },
     );
@@ -108,7 +112,9 @@ class LocalDatabase {
         mp INTEGER,
         avatarUrl TEXT,
         stats TEXT,
-        coins INTEGER NOT NULL DEFAULT 0
+        coins INTEGER NOT NULL DEFAULT 0,
+        shopUpgrades TEXT,
+        ownedFrames TEXT
       )
     ''');
   }
@@ -233,6 +239,8 @@ class LocalDatabase {
     final db = await database;
     final data = character.toJson();
     data['stats'] = jsonEncode(data['stats'] ?? {});
+    data['shopUpgrades'] = jsonEncode(data['shopUpgrades'] ?? {});
+    data['ownedFrames'] = jsonEncode(data['ownedFrames'] ?? []);
     await db.insert(
       'character',
       data,

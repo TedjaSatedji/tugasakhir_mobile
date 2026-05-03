@@ -162,6 +162,18 @@ class CharacterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates a specific key in the character's stats dictionary.
+  /// Useful for syncing arbitrary integer progression data like high scores.
+  Future<void> updateStat(String key, int value) async {
+    if (_character == null) return;
+    final newStats = Map<String, int>.from(_character!.stats);
+    newStats[key] = value;
+    _character = _character!.copyWith(stats: newStats);
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+  }
+
   static int levelForXp(int totalXp) {
     int level = 1;
     int requirement = baseXpPerLevel;

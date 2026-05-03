@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   late final List<Widget> _screens;
+  final GlobalKey<BudgetInvadersScreenState> _budgetInvadersKey = GlobalKey();
 
   // ── Shake detection ──────────────────────────────────────────────────
   static const double _shakeThreshold = 15.0; // m/s²
@@ -55,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const QuestListScreen(),
       const StatsScreen(),
       const ProfileScreen(),
-      const BudgetInvadersScreen(),
+      BudgetInvadersScreen(key: _budgetInvadersKey),
     ];
     _startShakeDetection();
 
@@ -149,7 +150,15 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: context.card,
         selectedItemColor: context.primary,
         unselectedItemColor: context.textDim,
-        onTap: (index) {
+        onTap: (index) async {
+          if (_selectedIndex == 5 && index != 5) {
+            final state = _budgetInvadersKey.currentState;
+            if (state != null && state.isGameActive) {
+              final shouldPop = await state.onWillPop();
+              if (!shouldPop) return;
+              state.resetGame();
+            }
+          }
           setState(() {
             _selectedIndex = index;
           });
