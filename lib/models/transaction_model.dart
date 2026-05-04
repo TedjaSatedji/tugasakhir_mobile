@@ -23,6 +23,10 @@ class TransactionModel {
   final double? latitude;
   final double? longitude;
   final String? locationName;
+  final int xpAwarded;
+  final int coinsAwarded;
+  final String? missionCompletedId;
+  final String? missionCompletedDateKey;
 
   TransactionModel({
     required this.id,
@@ -37,6 +41,10 @@ class TransactionModel {
     this.latitude,
     this.longitude,
     this.locationName,
+    this.xpAwarded = 0,
+    this.coinsAwarded = 0,
+    this.missionCompletedId,
+    this.missionCompletedDateKey,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +63,10 @@ class TransactionModel {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       locationName: json['locationName'] as String?,
+      xpAwarded: json['xpAwarded'] ?? 0,
+      coinsAwarded: json['coinsAwarded'] ?? 0,
+      missionCompletedId: json['missionCompletedId'] as String?,
+      missionCompletedDateKey: json['missionCompletedDateKey'] as String?,
     );
   }
 
@@ -72,6 +84,10 @@ class TransactionModel {
       'latitude': latitude,
       'longitude': longitude,
       'locationName': locationName,
+      'xpAwarded': xpAwarded,
+      'coinsAwarded': coinsAwarded,
+      'missionCompletedId': missionCompletedId,
+      'missionCompletedDateKey': missionCompletedDateKey,
     };
   }
 }

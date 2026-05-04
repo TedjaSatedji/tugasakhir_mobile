@@ -53,6 +53,10 @@ class TransactionProvider extends ChangeNotifier {
     double? latitude,
     double? longitude,
     String? locationName,
+    int xpAwarded = 0,
+    int coinsAwarded = 0,
+    String? missionCompletedId,
+    String? missionCompletedDateKey,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -79,6 +83,10 @@ class TransactionProvider extends ChangeNotifier {
       latitude: latitude,
       longitude: longitude,
       locationName: locationName,
+      xpAwarded: xpAwarded,
+      coinsAwarded: coinsAwarded,
+      missionCompletedId: missionCompletedId,
+      missionCompletedDateKey: missionCompletedDateKey,
     );
 
     _transactions.add(transaction);

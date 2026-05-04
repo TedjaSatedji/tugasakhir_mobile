@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -23,6 +24,7 @@ class QuestDetailScreen extends StatefulWidget {
 }
 
 class _QuestDetailScreenState extends State<QuestDetailScreen> {
+  static const int _maxAmountDigits = 15;
   @override
   Widget build(BuildContext context) {
     // To make sure we have the latest state of the quest
@@ -248,6 +250,9 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
   void _showAddFundsDialog(BuildContext context, QuestModel quest) {
     final TextEditingController amountController = TextEditingController();
     DateTime selectedDate = DateTime.now();
+    final remainingAmount = (quest.targetAmount - quest.currentSavedAmount)
+        .clamp(0.0, quest.targetAmount)
+        .floor();
 
     showDialog(
       context: context,
@@ -267,6 +272,12 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  _CurrencyInputFormatter(
+                    maxDigits: _maxAmountDigits,
+                    maxValue: remainingAmount,
+                  ),
+                ],
                 style: const TextStyle(color: AppColors.textPrimary),
                 decoration: const InputDecoration(
                   hintText: 'Masukkan jumlah (Rp)',
@@ -342,11 +353,18 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final amount = double.tryParse(amountController.text) ?? 0;
+                final rawAmount = amountController.text.replaceAll(',', '');
+                final amount = double.tryParse(rawAmount) ?? 0;
                 if (amount > 0) {
+                  final questProvider = context.read<QuestProvider>();
+                  final dateKey = questProvider.todayKey();
+
                   final result = await context
                       .read<QuestProvider>()
                       .addFundsToGoal(quest.id, amount);
+
+                  final amountXp = (amount / 1000).floor();
+                  final xpAwarded = amountXp + result.totalXp;
                       
                   // Log as an expense in the wallet
                   await context.read<TransactionProvider>().addTransaction(
@@ -356,11 +374,15 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                         'Tabungan Target: ${quest.title}',
                         null,
                         timestamp: selectedDate,
+                        xpAwarded: xpAwarded,
+                        missionCompletedId:
+                            result.missionXp > 0 ? 'mission_2' : null,
+                        missionCompletedDateKey:
+                            result.missionXp > 0 ? dateKey : null,
                       );
 
-                  await context.read<CharacterProvider>().addXpForAmount(amount);
-                  if (result.totalXp > 0) {
-                    await context.read<CharacterProvider>().addXP(result.totalXp);
+                  if (xpAwarded > 0) {
+                    await context.read<CharacterProvider>().addXP(xpAwarded);
                   }
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -402,6 +424,37 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
       case QuestStatus.failed:
         return 'Gagal';
     }
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  _CurrencyInputFormatter({required this.maxDigits, this.maxValue});
+
+  final int maxDigits;
+  final int? maxValue;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.isEmpty) {
+      return const TextEditingValue(text: '');
+    }
+
+    final trimmed = digitsOnly.length > maxDigits
+        ? digitsOnly.substring(0, maxDigits)
+        : digitsOnly;
+    final parsed = int.parse(trimmed);
+    final capped = maxValue != null ? parsed.clamp(0, maxValue!) : parsed;
+    final formatted =
+      NumberFormat.decimalPattern('en_US').format(capped);
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }
 

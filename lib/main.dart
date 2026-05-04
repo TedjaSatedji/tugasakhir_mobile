@@ -39,12 +39,6 @@ void main() async {
   // Setup global auth failure hook
   ApiClient.onAuthFailed = () {
     if (navigatorKey.currentContext != null) {
-      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-        const SnackBar(
-          content: Text('Sesi telah berakhir. Silakan login kembali.'),
-          backgroundColor: Colors.red,
-        ),
-      );
       // We will let AuthProvider handle the UI redirection by calling logout()
       Provider.of<AuthProvider>(navigatorKey.currentContext!, listen: false).logout();
     }

@@ -211,6 +211,24 @@ def register(
     return {"message": "Registration successful. Please verify your email."}
 
 
+@app.post("/auth/resend-verification", response_model=schemas.MessageResponse)
+def resend_verification_email(
+    payload: schemas.ResendVerificationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if not user:
+        return {"message": "If the email exists, a verification link was sent."}
+
+    if user.is_verified:
+        return {"message": "Email already verified"}
+
+    token = auth.create_verification_token(payload.email)
+    send_verification_email(payload.email, token, background_tasks)
+    return {"message": "If the email exists, a verification link was sent."}
+
+
 @app.post("/auth/login", response_model=schemas.TokenResponse)
 def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == payload.email).first()

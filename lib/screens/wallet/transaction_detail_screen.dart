@@ -11,6 +11,8 @@ import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/character_provider.dart';
+import '../../providers/quest_provider.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final TransactionModel transaction;
@@ -76,6 +78,26 @@ class TransactionDetailScreen extends StatelessWidget {
               );
 
               if (confirm == true) {
+                final xpToRemove = transaction.xpAwarded > 0
+                    ? transaction.xpAwarded
+                    : (transaction.amount / 1000).floor();
+
+                if (transaction.missionCompletedId != null &&
+                    transaction.missionCompletedDateKey != null) {
+                  await context.read<QuestProvider>().revokeDailyMission(
+                        transaction.missionCompletedId!,
+                        transaction.missionCompletedDateKey!,
+                      );
+                }
+
+                if (xpToRemove > 0) {
+                  await context.read<CharacterProvider>().removeXP(xpToRemove);
+                }
+                if (transaction.coinsAwarded > 0) {
+                  await context
+                      .read<CharacterProvider>()
+                      .removeCoins(transaction.coinsAwarded);
+                }
                 await context
                     .read<TransactionProvider>()
                     .deleteTransaction(transaction.id);

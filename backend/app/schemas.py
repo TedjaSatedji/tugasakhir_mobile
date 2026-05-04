@@ -16,6 +16,10 @@ class PasswordResetRequest(BaseModel):
     email: EmailStr
 
 
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
 class PasswordResetVerify(BaseModel):
     email: EmailStr
     code: str

@@ -28,7 +28,7 @@ class LocalDatabase {
     final path = join(dbPath, 'tugasakhir_mobile.db');
     return openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         await _createTransactionsTable(db);
         await _createQuestsTable(db);
@@ -56,6 +56,12 @@ class LocalDatabase {
           await db.execute('ALTER TABLE character ADD COLUMN shopUpgrades TEXT');
           await db.execute('ALTER TABLE character ADD COLUMN ownedFrames TEXT');
         }
+        if (oldVersion < 7) {
+          await db.execute('ALTER TABLE transactions ADD COLUMN xpAwarded INTEGER NOT NULL DEFAULT 0');
+          await db.execute('ALTER TABLE transactions ADD COLUMN coinsAwarded INTEGER NOT NULL DEFAULT 0');
+          await db.execute('ALTER TABLE transactions ADD COLUMN missionCompletedId TEXT');
+          await db.execute('ALTER TABLE transactions ADD COLUMN missionCompletedDateKey TEXT');
+        }
       },
     );
   }
@@ -75,9 +81,14 @@ class LocalDatabase {
         latitude REAL,
         longitude REAL,
         locationName TEXT,
+        xpAwarded INTEGER NOT NULL DEFAULT 0,
+        coinsAwarded INTEGER NOT NULL DEFAULT 0,
+        missionCompletedId TEXT,
+        missionCompletedDateKey TEXT,
         is_synced INTEGER NOT NULL DEFAULT 1
       )
-    ''');
+    '''
+    );
   }
 
   Future<void> _createQuestsTable(Database db) async {

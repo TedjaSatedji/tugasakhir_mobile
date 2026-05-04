@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/theme_extensions.dart';
@@ -26,6 +27,7 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
+  static const int _maxAmountDigits = 15;
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
 
@@ -125,6 +127,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                _CurrencyInputFormatter(maxDigits: _maxAmountDigits),
+              ],
               style: TextStyle(color: context.text),
               decoration: InputDecoration(
                 hintText: '0',
@@ -401,10 +406,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     return;
                   }
 
-                  final amount = double.tryParse(_amountController.text) ?? 0;
+                  final rawAmount = _amountController.text.replaceAll(',', '');
+                  final amount = double.tryParse(rawAmount) ?? 0;
                   final category = _selectedType == TransactionType.expense
                       ? _selectedCategory
                       : null;
+
+                    final questProvider = context.read<QuestProvider>();
+                    final dateKey = questProvider.todayKey();
+
+                    final (missionXp, missionCoins) =
+                      await questProvider.completeDailyMission('mission_1');
+                    final amountXp = (amount / 1000).floor();
+                    final xpAwarded = amountXp + missionXp;
+                    final totalCoins = 2 + missionCoins;
 
                   await context.read<TransactionProvider>().addTransaction(
                     _selectedType,
@@ -418,20 +433,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     latitude: _latitude,
                     longitude: _longitude,
                     locationName: _locationName,
+                    xpAwarded: xpAwarded,
+                    coinsAwarded: totalCoins,
+                    missionCompletedId: missionXp > 0 ? 'mission_1' : null,
+                    missionCompletedDateKey: missionXp > 0 ? dateKey : null,
                   );
 
-                  await context.read<CharacterProvider>().addXpForAmount(amount);
-
-                    // Complete daily mission and award its XP + coins
-                  final (missionXp, missionCoins) = await context
-                      .read<QuestProvider>()
-                      .completeDailyMission('mission_1');
-                  if (missionXp > 0) {
-                    await context.read<CharacterProvider>().addXP(missionXp);
+                  if (xpAwarded > 0) {
+                    await context.read<CharacterProvider>().addXP(xpAwarded);
                   }
 
                   // Award +2 coins for logging a transaction
-                  final totalCoins = 2 + missionCoins;
                   await context.read<CharacterProvider>().addCoins(totalCoins);
                   if (context.mounted) {
                     CoinRewardOverlay.show(context, totalCoins);
@@ -441,7 +453,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   context.read<NotificationProvider>().addNotification(
                     NotificationModel(
                       title: 'Transaksi Berhasil',
-                      message: 'Kamu mendapatkan +10 XP!',
+                      message: 'Kamu mendapatkan +$xpAwarded XP!',
                       type: NotificationType.transaction,
                     ),
                   );
@@ -655,6 +667,34 @@ class _TypeButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  _CurrencyInputFormatter({required this.maxDigits});
+
+  final int maxDigits;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.isEmpty) {
+      return const TextEditingValue(text: '');
+    }
+
+    final trimmed = digitsOnly.length > maxDigits
+        ? digitsOnly.substring(0, maxDigits)
+        : digitsOnly;
+    final formatted =
+        NumberFormat.decimalPattern('en_US').format(int.parse(trimmed));
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

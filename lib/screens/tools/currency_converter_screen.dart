@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/extensions/theme_extensions.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+
+const int _maxAmountDigits = 15;
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -76,7 +79,8 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   void _convert() {
     if (_currentRates.isEmpty) return;
 
-    double amount = double.tryParse(_amountController.text) ?? 0.0;
+    final rawAmount = _amountController.text.replaceAll(',', '');
+    double amount = double.tryParse(rawAmount) ?? 0.0;
     
     // The rates map contains the multiplier from the base currency to the target currency
     final String targetCode = _toCurrency.toLowerCase();
@@ -172,6 +176,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                _CurrencyInputFormatter(maxDigits: _maxAmountDigits),
+              ],
               onChanged: (val) => _convert(),
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.text),
               decoration: InputDecoration(
@@ -356,6 +363,34 @@ class _CurrencySelector extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  _CurrencyInputFormatter({required this.maxDigits});
+
+  final int maxDigits;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.isEmpty) {
+      return const TextEditingValue(text: '');
+    }
+
+    final trimmed = digitsOnly.length > maxDigits
+        ? digitsOnly.substring(0, maxDigits)
+        : digitsOnly;
+    final formatted =
+        NumberFormat.decimalPattern('en_US').format(int.parse(trimmed));
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

@@ -117,6 +117,8 @@ class QuestProvider extends ChangeNotifier {
     }
   }
 
+  String todayKey() => _todayKey();
+
   String _todayKey() {
     final now = DateTime.now();
     return '${now.year.toString().padLeft(4, '0')}-'
@@ -147,6 +149,24 @@ class QuestProvider extends ChangeNotifier {
     }
 
     return (0, 0);
+  }
+
+  Future<void> revokeDailyMission(String id, String dateKey) async {
+    await _db.upsertDailyMissionState(
+      dateKey: dateKey,
+      missionId: id,
+      isCompleted: false,
+    );
+    SyncService().pushDailyMissionState(id, dateKey, false);
+
+    if (dateKey == _todayKey()) {
+      final index = _dailyMissions.indexWhere((m) => m.id == id);
+      if (index != -1) {
+        _dailyMissions[index].isCompleted = false;
+      }
+    }
+
+    notifyListeners();
   }
 
   Future<void> createQuest(

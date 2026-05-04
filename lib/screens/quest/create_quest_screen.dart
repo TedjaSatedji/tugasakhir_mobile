@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/app_colors.dart';
@@ -7,6 +8,8 @@ import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
+
+const int _maxAmountDigits = 15;
 
 class CreateQuestScreen extends StatefulWidget {
   const CreateQuestScreen({super.key});
@@ -183,6 +186,9 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
             TextField(
               controller: _targetAmountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                _CurrencyInputFormatter(maxDigits: _maxAmountDigits),
+              ],
               decoration: InputDecoration(
               hintText: 'amountHint'.tr(),
                 border: OutlineInputBorder(
@@ -333,6 +339,34 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  _CurrencyInputFormatter({required this.maxDigits});
+
+  final int maxDigits;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.isEmpty) {
+      return const TextEditingValue(text: '');
+    }
+
+    final trimmed = digitsOnly.length > maxDigits
+        ? digitsOnly.substring(0, maxDigits)
+        : digitsOnly;
+    final formatted =
+        NumberFormat.decimalPattern('en_US').format(int.parse(trimmed));
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

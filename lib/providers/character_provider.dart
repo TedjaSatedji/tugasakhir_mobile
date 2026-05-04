@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/character_model.dart';
 import '../models/shop_item_model.dart';
@@ -11,6 +12,7 @@ class CharacterProvider extends ChangeNotifier {
   static const int baseXpPerLevel = 200;
   static const int xpIncrementPerLevel = 50;
   static const int coinsPerLevelUp = 30;
+  static const int _maxDbInt = 9223372036854775807;
   final LocalDatabase _db = LocalDatabase.instance;
   CharacterModel? _character;
   bool _isLoading = false;
@@ -97,7 +99,11 @@ class CharacterProvider extends ChangeNotifier {
   Future<void> addXP(int xp) async {
     if (_character != null) {
       final oldLevel = _character!.level;
-      int newXP = _character!.totalXP + xp;
+      final safeXp = xp < 0 ? 0 : xp;
+      int newXP = _character!.totalXP + safeXp;
+      if (newXP > _maxDbInt) {
+        newXP = _maxDbInt;
+      }
       int newLevel = levelForXp(newXP);
 
       // Award coins and fire notifier on level-up
@@ -118,6 +124,35 @@ class CharacterProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> removeXP(int xp) async {
+    if (_character == null) return;
+    final oldLevel = _character!.level;
+    final safeXp = xp < 0 ? 0 : xp;
+    if (safeXp == 0) return;
+
+    int newXP = _character!.totalXP - safeXp;
+    if (newXP < 0) {
+      newXP = 0;
+    }
+    final newLevel = levelForXp(newXP);
+
+    int coinsToRevoke = 0;
+    if (newLevel < oldLevel) {
+      coinsToRevoke = coinsPerLevelUp * (oldLevel - newLevel);
+    }
+
+    _character = _character!.copyWith(
+      totalXP: newXP,
+      level: newLevel,
+      coins: (_character!.coins - coinsToRevoke) < 0
+          ? 0
+          : (_character!.coins - coinsToRevoke),
+    );
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+  }
+
   Future<void> addXpForAmount(double amount) async {
     final xp = (amount / 1000).floor();
     if (xp <= 0) {
@@ -126,10 +161,27 @@ class CharacterProvider extends ChangeNotifier {
     await addXP(xp);
   }
 
+  Future<void> removeXpForAmount(double amount) async {
+    final xp = (amount / 1000).floor();
+    if (xp <= 0) {
+      return;
+    }
+    await removeXP(xp);
+  }
+
   /// Adds coins to the character balance.
   Future<void> addCoins(int amount) async {
     if (_character == null || amount <= 0) return;
     _character = _character!.copyWith(coins: _character!.coins + amount);
+    await _db.upsertCharacter(_character!);
+    SyncService().pushCharacter(_character!);
+    notifyListeners();
+  }
+
+  Future<void> removeCoins(int amount) async {
+    if (_character == null || amount <= 0) return;
+    final newBalance = _character!.coins - amount;
+    _character = _character!.copyWith(coins: newBalance < 0 ? 0 : newBalance);
     await _db.upsertCharacter(_character!);
     SyncService().pushCharacter(_character!);
     notifyListeners();
@@ -176,33 +228,36 @@ class CharacterProvider extends ChangeNotifier {
   }
 
   static int levelForXp(int totalXp) {
-    int level = 1;
-    int requirement = baseXpPerLevel;
-    int remaining = totalXp;
-
-    while (remaining >= requirement) {
-      remaining -= requirement;
-      level += 1;
-      requirement += xpIncrementPerLevel;
+    if (totalXp <= 0) return 1;
+    if (xpIncrementPerLevel == 0) {
+      if (baseXpPerLevel <= 0) return 1;
+      return (totalXp ~/ baseXpPerLevel) + 1;
     }
 
-    return level;
+    final a = xpIncrementPerLevel / 2.0;
+    final b = baseXpPerLevel - (xpIncrementPerLevel / 2.0);
+    final c = -totalXp.toDouble();
+    final disc = (b * b) - (4 * a * c);
+    final n = ((-b + math.sqrt(disc)) / (2 * a)).floor();
+    return n + 1;
   }
 
   static int xpIntoLevel(int totalXp) {
-    int requirement = baseXpPerLevel;
-    int remaining = totalXp;
-
-    while (remaining >= requirement) {
-      remaining -= requirement;
-      requirement += xpIncrementPerLevel;
-    }
-
-    return remaining;
+    if (totalXp <= 0) return 0;
+    final level = levelForXp(totalXp);
+    final into = totalXp - _totalXpForLevel(level);
+    return into < 0 ? 0 : into;
   }
 
   static int xpRequiredForNextLevel(int level) {
     return baseXpPerLevel + xpIncrementPerLevel * (level - 1);
+  }
+
+  static int _totalXpForLevel(int level) {
+    if (level <= 1) return 0;
+    final n = level - 1;
+    return (n * baseXpPerLevel) +
+        ((xpIncrementPerLevel * n * (n - 1)) ~/ 2);
   }
 
   Future<void> updateCharacterName(String newName) async {
