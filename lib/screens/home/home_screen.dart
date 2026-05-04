@@ -86,6 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _accelSub = accelerometerEventStream(
       samplingPeriod: SensorInterval.normalInterval,
     ).listen((AccelerometerEvent event) {
+      if (_selectedIndex == 5) return;
+      final gameState = _budgetInvadersKey.currentState;
+      if (gameState != null && gameState.isGameActive) return;
+
       final double magnitude = sqrt(
         event.x * event.x +
         event.y * event.y +

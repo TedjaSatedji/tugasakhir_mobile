@@ -96,9 +96,14 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   late Ticker _ticker;
   Duration _lastTime = Duration.zero;
 
-  // Tilt controls
-  StreamSubscription<AccelerometerEvent>? _accelSubscription;
-  double _tiltVelocity = 0.0;
+  // Gyro controls (EMP)
+  StreamSubscription<GyroscopeEvent>? _gyroSubscription;
+  StreamSubscription<UserAccelerometerEvent>? _userAccelSubscription;
+  double _latestUserAccel = 0.0;
+  double _empCooldown = 0.0;
+  static const double _empMaxCooldown = 10.0;
+  static const double _empRotationThreshold = 2.4;
+  static const double _empMaxLinearAccel = 5.0;
 
   // Drag controls
   double? _dragStartX;
@@ -133,19 +138,31 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       }
     });
 
-    // Listen to accelerometer for tilt controls
-    _accelSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
+    // Listen to gyroscope for EMP attack
+    _userAccelSubscription = userAccelerometerEventStream(
+      samplingPeriod: SensorInterval.normalInterval,
+    ).listen((UserAccelerometerEvent event) {
+      _latestUserAccel = sqrt(
+        event.x * event.x + event.y * event.y + event.z * event.z,
+      );
+    });
+    _gyroSubscription = gyroscopeEventStream().listen((GyroscopeEvent event) {
       if (_gameStarted && !_paused && !_gameOver) {
-        _tiltVelocity = -event.x * 2.0;
-      } else {
-        _tiltVelocity = 0.0;
+        // A flick on the Y or Z axis triggers EMP
+        final hasStrongRotation =
+            event.y.abs() > _empRotationThreshold || event.z.abs() > _empRotationThreshold;
+        final hasLowLinearAccel = _latestUserAccel < _empMaxLinearAccel;
+        if (hasStrongRotation && hasLowLinearAccel && _empCooldown <= 0) {
+          _triggerEmp();
+        }
       }
     });
   }
 
   @override
   void dispose() {
-    _accelSubscription?.cancel();
+    _gyroSubscription?.cancel();
+    _userAccelSubscription?.cancel();
     _ticker.dispose();
     super.dispose();
   }
@@ -199,6 +216,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     _wave = 1;
     _gameOver = false;
     _shootCooldown = 0;
+    _empCooldown = 0.0;
     _dragAccumulator = 0.0;
     _dragStartX = null;
     _spawnWave();
@@ -283,15 +301,13 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       _dragAccumulator = 0.0;
     }
 
-    // ── Player movement via tilt (Accelerometer) ─────────────────────────
-    if (_tiltVelocity.abs() > 0.5) { // Deadzone to avoid jitter
-      final moveSpeed = (_tiltVelocity * 100).clamp(-_upgrades.moveSpeedClamp, _upgrades.moveSpeedClamp);
-      _playerX = (_playerX + moveSpeed * dt).clamp(_playerW / 2, _W - _playerW / 2);
-    }
-
     // ── Auto-shoot ───────────────────────────────────────────────────────
     _shootCooldown -= dt;
     if (_shootCooldown <= 0) _shoot();
+
+    if (_empCooldown > 0) {
+      _empCooldown -= dt;
+    }
 
     // ── Move bullets ─────────────────────────────────────────────────────
     final bulletSpeed = _upgrades.bulletSpeed;
@@ -416,6 +432,31 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     _bullets.add(_Bullet(x: _playerX, y: _playerY - _playerH / 2));
     _shootCooldown = 0.3; // upgrades don't touch shoot cooldown in current scope
     HapticFeedback.selectionClick();
+  }
+
+  void _triggerEmp() {
+    _empCooldown = _empMaxCooldown;
+    HapticFeedback.heavyImpact();
+    
+    // Destroy all enemy bullets
+    for (var b in _bullets.where((b) => b.isEnemy)) {
+      _spawnExplosion(b.x, b.y, AppColors.primaryNeon);
+    }
+    _bullets.removeWhere((b) => b.isEnemy);
+
+    // Visual explosion
+    for (int i = 0; i < 30; i++) {
+      final angle = _rng.nextDouble() * pi * 2;
+      final speed = 100 + _rng.nextDouble() * 300;
+      _particles.add(_Particle(
+        x: _playerX,
+        y: _playerY,
+        vx: cos(angle) * speed,
+        vy: sin(angle) * speed,
+        life: 0.8 + _rng.nextDouble() * 0.8,
+        color: AppColors.secondaryNeon,
+      ));
+    }
   }
 
   void _spawnExplosion(double x, double y, Color color) {
@@ -652,7 +693,9 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                       lives: _lives,
                       maxLives: 3 + _upgrades.extraLivesBonus,
                       wave: _wave,
-                      highScore: _highScore),
+                      highScore: _highScore,
+                      empCooldown: _empCooldown,
+                      empMaxCooldown: _empMaxCooldown),
                 ),
 
               // Start screen
@@ -702,7 +745,8 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
             _buildLegend(),
             const SizedBox(height: 20),
             const Text(
-              '👆 Drag layar atau miringkan HP untuk gerak\n'
+              '👆 Drag layar untuk gerak\n'
+              '⚡ Goyangkan HP (flick) untuk EMP (Hapus peluru musuh!)\n'
               '🚀 Jangan sampai nyawamu habis!',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -845,12 +889,16 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
 class _HUD extends StatelessWidget {
   final int score, lives, maxLives, wave, highScore;
+  final double empCooldown;
+  final double empMaxCooldown;
   const _HUD(
       {required this.score,
       required this.lives,
       required this.maxLives,
       required this.wave,
-      required this.highScore});
+      required this.highScore,
+      required this.empCooldown,
+      required this.empMaxCooldown});
 
   @override
   Widget build(BuildContext context) {
@@ -869,6 +917,20 @@ class _HUD extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 12)),
         const Spacer(),
+        // EMP Indicator
+        if (empCooldown <= 0)
+          const Text('⚡ EMP READY', style: TextStyle(color: AppColors.secondaryNeon, fontFamily: 'Poppins', fontSize: 10, fontWeight: FontWeight.bold))
+        else
+          SizedBox(
+            width: 40,
+            height: 4,
+            child: LinearProgressIndicator(
+              value: 1 - (empCooldown / empMaxCooldown),
+              backgroundColor: Colors.white24,
+              color: AppColors.secondaryNeon,
+            )
+          ),
+        const SizedBox(width: 12),
         Text('Wave $wave',
             style: const TextStyle(
                 color: AppColors.secondaryNeon,
