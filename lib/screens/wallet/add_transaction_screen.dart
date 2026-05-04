@@ -229,28 +229,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickReceiptImage,
-                    icon: const Icon(Icons.photo_library),
-                    label: Text('pickPhoto'.tr()),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: context.primary,
-                      side: BorderSide(color: context.primary),
-                    ),
+                OutlinedButton(
+                  onPressed: _pickReceiptImage,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.primary,
+                    side: BorderSide(color: context.primary),
                   ),
+                  child: const Icon(Icons.photo_library),
                 ),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _captureReceiptImage,
-                    icon: const Icon(Icons.photo_camera),
-                    label: Text('takePhoto'.tr()),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: context.primary,
-                      side: BorderSide(color: context.primary),
-                    ),
+                OutlinedButton(
+                  onPressed: _captureReceiptImage,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.primary,
+                    side: BorderSide(color: context.primary),
                   ),
+                  child: const Icon(Icons.photo_camera),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
