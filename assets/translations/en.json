@@ -67,6 +67,7 @@
   "amountRp": "Amount (Rp)",
   "optionalPhoto": "Photo (Optional)",
   "pickPhoto": "Pick Photo",
+  "takePhoto": "Take Photo",
   "scanning": "Scanning...",
   "scan": "Scan",
   "optionalLocation": "Location (Optional)",

@@ -243,6 +243,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
+                    onPressed: _captureReceiptImage,
+                    icon: const Icon(Icons.photo_camera),
+                    label: Text('takePhoto'.tr()),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: context.primary,
+                      side: BorderSide(color: context.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
                     onPressed: _isScanning ? null : _scanReceipt,
                     icon: _isScanning
                         ? const SizedBox(
@@ -484,6 +496,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Future<void> _pickReceiptImage() async {
     final image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 70,
+    );
+
+    if (image == null) {
+      return;
+    }
+
+    setState(() {
+      _receiptImagePath = image.path;
+    });
+  }
+
+  Future<void> _captureReceiptImage() async {
+    final image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
       maxWidth: 1024,
       imageQuality: 70,
     );
