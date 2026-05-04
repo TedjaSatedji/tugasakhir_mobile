@@ -11,6 +11,7 @@ import '../../models/shop_item_model.dart';
 import '../../providers/shop_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../widgets/coin_reward_overlay.dart';
+import 'leaderboard_screen.dart';
 
 // ─── Data Models ────────────────────────────────────────────────────────────
 
@@ -176,10 +177,13 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       // We can also keep a local copy for redundancy
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('budget_invaders_high_score', _score);
-      
+
       if (mounted) {
         setState(() => _highScore = _score);
       }
+
+      // Sync leaderboard rank — may grant/revoke exclusive rank frames
+      provider.syncLeaderboardRank();
     }
   }
 
@@ -555,6 +559,18 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
             const Spacer(),
+            if (!_gameStarted || _gameOver)
+              IconButton(
+                icon: const Icon(Icons.leaderboard, color: AppColors.xpColor),
+                tooltip: 'Leaderboard',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const LeaderboardScreen()),
+                  );
+                },
+              ),
             if (_gameStarted && !_gameOver) ...[
               IconButton(
                 icon: Icon(_paused ? Icons.play_arrow : Icons.pause,

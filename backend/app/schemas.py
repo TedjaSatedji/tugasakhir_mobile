@@ -106,3 +106,11 @@ class DailyMissionStateSchema(BaseModel):
     mission_id: str
     date: str
     is_completed: bool
+
+
+class LeaderboardEntry(BaseModel):
+    rank: int
+    name: str
+    avatar_url: str | None = None
+    high_score: int
+    email_prefix: str

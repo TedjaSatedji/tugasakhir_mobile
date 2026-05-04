@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../shop/shop_screen.dart';
 import 'edit_profile_screen.dart';
 import '../settings/settings_screen.dart';
+import '../games/leaderboard_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -79,30 +80,61 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           // Avatar with equipped frame
-                          shopProvider.equippedFrame.isAnimated
-                              ? _AnimatedFrameAvatar(character: character)
-                              : Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: frameColor,
-                                      width: 3,
+                          shopProvider.equippedFrame.isLeaderboardReward
+                              ? Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    RankFramePreview(
+                                        color: shopProvider.equippedFrame.color,
+                                        size: 88),
+                                    SizedBox(
+                                      width: 72,
+                                      height: 72,
+                                      child: ClipOval(
+                                        child: (character?.avatarUrl.isNotEmpty ??
+                                                false)
+                                            ? (character!.avatarUrl
+                                                    .startsWith('http')
+                                                ? CachedNetworkImage(
+                                                    imageUrl:
+                                                        character.avatarUrl,
+                                                    fit: BoxFit.cover)
+                                                : Image.file(
+                                                    File(character.avatarUrl),
+                                                    fit: BoxFit.cover))
+                                            : Icon(
+                                                Icons.person,
+                                                size: 36,
+                                                color: context.primary,
+                                              ),
+                                      ),
                                     ),
-                                  ),
-                                  child: ClipOval(
-                                    child: (character?.avatarUrl.isNotEmpty ?? false)
-                                        ? (character!.avatarUrl.startsWith('http')
-                                            ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
-                                            : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
-                                        : Icon(
-                                            Icons.person,
-                                            size: 40,
-                                            color: context.primary,
-                                          ),
-                                  ),
-                                ),
+                                  ],
+                                )
+                              : shopProvider.equippedFrame.isAnimated
+                                  ? _AnimatedFrameAvatar(character: character)
+                                  : Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: frameColor,
+                                          width: 3,
+                                        ),
+                                      ),
+                                      child: ClipOval(
+                                        child: (character?.avatarUrl.isNotEmpty ?? false)
+                                            ? (character!.avatarUrl.startsWith('http')
+                                                ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
+                                                : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
+                                            : Icon(
+                                                Icons.person,
+                                                size: 40,
+                                                color: context.primary,
+                                              ),
+                                      ),
+                                    ),
                         ],
                       ),
                       const SizedBox(height: 20),

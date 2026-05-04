@@ -12,8 +12,9 @@ class AvatarFrame {
   final String id;
   final String name;
   final String emoji;
-  final int cost; // 0 = free/default
+  final int cost; // 0 = free/default; -1 = leaderboard-only
   final bool isAnimated;
+  final bool isLeaderboardReward;
   final Color color;
 
   const AvatarFrame({
@@ -23,6 +24,7 @@ class AvatarFrame {
     required this.cost,
     required this.color,
     this.isAnimated = false,
+    this.isLeaderboardReward = false,
   });
 
   static const List<AvatarFrame> catalogue = [
@@ -61,6 +63,34 @@ class AvatarFrame {
       cost: 600,
       color: Color(0xFF00FF41), // base color; rendered as animated gradient
       isAnimated: true,
+    ),
+    // ── Leaderboard-exclusive frames (auto-granted, not purchasable) ──
+    AvatarFrame(
+      id: 'frame_rank1',
+      name: 'Champion',
+      emoji: '🥇',
+      cost: -1,
+      color: Color(0xFFFFD700),
+      isAnimated: true,
+      isLeaderboardReward: true,
+    ),
+    AvatarFrame(
+      id: 'frame_rank2',
+      name: 'Runner-Up',
+      emoji: '🥈',
+      cost: -1,
+      color: Color(0xFFC0C0C0),
+      isAnimated: true,
+      isLeaderboardReward: true,
+    ),
+    AvatarFrame(
+      id: 'frame_rank3',
+      name: 'Bronze League',
+      emoji: '🥉',
+      cost: -1,
+      color: Color(0xFFCD7F32),
+      isAnimated: true,
+      isLeaderboardReward: true,
     ),
   ];
 

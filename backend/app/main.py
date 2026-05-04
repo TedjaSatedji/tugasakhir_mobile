@@ -499,3 +499,48 @@ def upsert_daily_mission(
     db.commit()
     db.refresh(mission)
     return mission
+
+
+# --- Leaderboard ---
+
+@app.get("/leaderboard", response_model=list[schemas.LeaderboardEntry])
+def get_leaderboard(
+    limit: int = Query(default=50, le=100),
+    db: Session = Depends(get_db),
+):
+    """Public endpoint — returns top players ranked by Budget Invaders high score."""
+    characters = (
+        db.query(models.Character, models.User)
+        .join(models.User, models.Character.user_id == models.User.id)
+        .all()
+    )
+
+    entries = []
+    for char, user in characters:
+        stats = char.stats or {}
+        score = stats.get("budget_invaders_high_score", 0)
+        if score > 0:
+            email_prefix = user.email.split("@")[0] if user.email else "???"
+            entries.append({
+                "name": char.name,
+                "avatar_url": char.avatar_url,
+                "high_score": score,
+                "email_prefix": email_prefix,
+            })
+
+    # Sort descending by score
+    entries.sort(key=lambda e: e["high_score"], reverse=True)
+    entries = entries[:limit]
+
+    # Assign ranks
+    result = []
+    for i, e in enumerate(entries):
+        result.append(schemas.LeaderboardEntry(
+            rank=i + 1,
+            name=e["name"],
+            avatar_url=e["avatar_url"],
+            high_score=e["high_score"],
+            email_prefix=e["email_prefix"],
+        ))
+
+    return result

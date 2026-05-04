@@ -3,6 +3,7 @@ import '../../models/transaction_model.dart';
 import '../../models/quest_model.dart';
 import '../../models/character_model.dart';
 import '../../models/shop_item_model.dart';
+import '../../models/leaderboard_model.dart';
 import '../constants/api_constants.dart';
 import 'api_client.dart';
 import 'storage_service.dart';
@@ -140,6 +141,35 @@ class SyncService {
       await _dio.post('/sync/character', data: _characterToServer(c));
     } catch (e) {
       print("Push character failed: $e");
+    }
+  }
+
+  // --- Leaderboard ---
+
+  /// Fetches the global leaderboard (public endpoint, no auth required).
+  /// [currentUserId] is used to flag the current user's entry.
+  Future<List<LeaderboardEntry>> fetchLeaderboard() async {
+    try {
+      // Use a bare Dio instance (no auth interceptor) for the public endpoint
+      final response = await Dio().get('${ApiConstants.baseUrl}/leaderboard');
+      final currentUserId = StorageService.currentUserId;
+      // Fetch the current user's character name from local DB to identify row
+      final localChar = await _db.getCharacter();
+      final currentName = localChar?.name;
+
+      final list = (response.data as List).asMap().entries.map((entry) {
+        final json = Map<String, dynamic>.from(entry.value);
+        final isMe = currentName != null &&
+            json['name'] == currentName &&
+            json['email_prefix'] == (currentUserId.contains('@')
+                ? currentUserId.split('@')[0]
+                : currentUserId);
+        return LeaderboardEntry.fromJson(json, isCurrentUser: isMe);
+      }).toList();
+      return list;
+    } catch (e) {
+      print('fetchLeaderboard failed: $e');
+      return [];
     }
   }
 

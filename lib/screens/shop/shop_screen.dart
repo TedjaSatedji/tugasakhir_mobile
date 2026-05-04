@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../models/shop_item_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/shop_provider.dart';
+import '../games/leaderboard_screen.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -409,7 +410,9 @@ class _FrameCardState extends State<_FrameCard>
           border: Border.all(
             color: widget.isEquipped
                 ? widget.frame.color
-                : AppColors.primaryNeon.withOpacity(0.2),
+                : widget.frame.isLeaderboardReward
+                    ? widget.frame.color.withOpacity(0.5)
+                    : AppColors.primaryNeon.withOpacity(0.2),
             width: widget.isEquipped ? 2 : 1,
           ),
         ),
@@ -417,18 +420,20 @@ class _FrameCardState extends State<_FrameCard>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Frame preview
-            widget.frame.isAnimated
-                ? _HolographicPreview()
-                : Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: widget.frame.color, width: 3.5),
-                      color: widget.frame.color.withOpacity(0.1),
-                    ),
-                    child: Icon(Icons.person, color: widget.frame.color, size: 32),
-                  ),
+            widget.frame.isLeaderboardReward
+                ? RankFramePreview(color: widget.frame.color)
+                : widget.frame.isAnimated
+                    ? _HolographicPreview()
+                    : Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: widget.frame.color, width: 3.5),
+                          color: widget.frame.color.withOpacity(0.1),
+                        ),
+                        child: Icon(Icons.person, color: widget.frame.color, size: 32),
+                      ),
             const SizedBox(height: 10),
             Text(
               '${widget.frame.emoji} ${widget.frame.name}',
@@ -441,7 +446,10 @@ class _FrameCardState extends State<_FrameCard>
               ),
             ),
             const SizedBox(height: 8),
-            if (widget.isEquipped)
+            // Action area
+            if (widget.frame.isLeaderboardReward)
+              _LeaderboardBadge(owned: widget.isOwned, equipped: widget.isEquipped, frame: widget.frame, shopProvider: widget.shopProvider)
+            else if (widget.isEquipped)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
@@ -573,6 +581,77 @@ class _BuyButton extends StatelessWidget {
             fontSize: 12,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Leaderboard Badge ────────────────────────────────────────────────────────
+
+class _LeaderboardBadge extends StatelessWidget {
+  final bool owned;
+  final bool equipped;
+  final AvatarFrame frame;
+  final ShopProvider shopProvider;
+
+  const _LeaderboardBadge({
+    required this.owned,
+    required this.equipped,
+    required this.frame,
+    required this.shopProvider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (equipped) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.success.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.success.withOpacity(0.5)),
+        ),
+        child: const Text('✓ Equipped',
+            style: TextStyle(
+              color: AppColors.success,
+              fontFamily: 'Poppins',
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            )),
+      );
+    }
+    
+    if (owned) {
+      return _BuyButton(
+        label: 'Equip',
+        canAfford: true,
+        onTap: () async {
+          await shopProvider.equipFrame(frame.id);
+          HapticFeedback.lightImpact();
+        },
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: frame.color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: frame.color.withOpacity(0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🏆', style: TextStyle(fontSize: 12)),
+          const SizedBox(width: 4),
+          Text('Exclusive',
+              style: TextStyle(
+                color: frame.color,
+                fontFamily: 'Poppins',
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              )),
+        ],
       ),
     );
   }

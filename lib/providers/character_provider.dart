@@ -226,4 +226,51 @@ class CharacterProvider extends ChangeNotifier {
     SyncService().pushCharacter(_character!);
     notifyListeners();
   }
+
+  /// Fetches the leaderboard and grants/revokes rank-exclusive frames.
+  /// Called after a new high score is saved.
+  Future<void> syncLeaderboardRank() async {
+    if (_character == null) return;
+    try {
+      final entries = await SyncService().fetchLeaderboard();
+      if (entries.isEmpty) return;
+
+      // Find current user's rank (match by character name + email prefix from
+      // the local character; isCurrentUser is set by SyncService)
+      final myEntry = entries.where((e) => e.isCurrentUser).isNotEmpty
+          ? entries.firstWhere((e) => e.isCurrentUser)
+          : null;
+      final myRank = myEntry?.rank;
+
+      // Determine which rank frames to grant
+      const rankFrames = ['frame_rank1', 'frame_rank2', 'frame_rank3'];
+      final ownedFrames = List<String>.from(_character!.ownedFrames);
+
+      for (final frameId in rankFrames) {
+        final targetRank = rankFrames.indexOf(frameId) + 1;
+        final shouldOwn = myRank != null && myRank == targetRank;
+        final currentlyOwned = ownedFrames.contains(frameId);
+
+        if (shouldOwn && !currentlyOwned) {
+          ownedFrames.add(frameId);
+        } else if (!shouldOwn && currentlyOwned) {
+          ownedFrames.remove(frameId);
+        }
+      }
+
+      if (!_listsEqual(ownedFrames, _character!.ownedFrames)) {
+        await updateOwnedFrames(ownedFrames);
+      }
+    } catch (e) {
+      print('syncLeaderboardRank failed: $e');
+    }
+  }
+
+  bool _listsEqual(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }
