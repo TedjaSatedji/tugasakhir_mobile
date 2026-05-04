@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/sync_service.dart';
 import '../../models/leaderboard_model.dart';
+import '../../providers/character_provider.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -56,6 +58,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           _entries = entries;
           _isLoading = false;
         });
+        context.read<CharacterProvider>().syncLeaderboardRank(entries: entries);
         _podiumCtrl.forward(from: 0);
       }
     } catch (e) {
@@ -174,8 +177,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildContent() {
-    final top3 = _entries.take(3).toList();
-    final rest = _entries.skip(3).toList();
+    final sorted = [..._entries]..sort((a, b) => a.rank.compareTo(b.rank));
+    final top3 = sorted.take(3).toList();
+    final rest = sorted.skip(3).toList();
 
     return RefreshIndicator(
       color: AppColors.primaryNeon,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/character_model.dart';
 import '../models/shop_item_model.dart';
+import '../models/leaderboard_model.dart';
 import 'package:uuid/uuid.dart';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
@@ -229,17 +230,19 @@ class CharacterProvider extends ChangeNotifier {
 
   /// Fetches the leaderboard and grants/revokes rank-exclusive frames.
   /// Called after a new high score is saved.
-  Future<void> syncLeaderboardRank() async {
+  Future<void> syncLeaderboardRank({List<LeaderboardEntry>? entries}) async {
     if (_character == null) return;
     try {
-      final entries = await SyncService().fetchLeaderboard();
-      if (entries.isEmpty) return;
+      final leaderboardEntries =
+          entries ?? await SyncService().fetchLeaderboard();
+      if (leaderboardEntries.isEmpty) return;
 
       // Find current user's rank (match by character name + email prefix from
       // the local character; isCurrentUser is set by SyncService)
-      final myEntry = entries.where((e) => e.isCurrentUser).isNotEmpty
-          ? entries.firstWhere((e) => e.isCurrentUser)
-          : null;
+          final myEntry =
+            leaderboardEntries.where((e) => e.isCurrentUser).isNotEmpty
+              ? leaderboardEntries.firstWhere((e) => e.isCurrentUser)
+              : null;
       final myRank = myEntry?.rank;
 
       // Determine which rank frames to grant
