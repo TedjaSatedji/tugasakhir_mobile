@@ -86,6 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _accelSub = accelerometerEventStream(
       samplingPeriod: SensorInterval.normalInterval,
     ).listen((AccelerometerEvent event) {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
       if (_selectedIndex == 5) return;
       final gameState = _budgetInvadersKey.currentState;
       if (gameState != null && gameState.isGameActive) return;

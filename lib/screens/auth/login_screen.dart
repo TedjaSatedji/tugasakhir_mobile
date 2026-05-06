@@ -185,6 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             : () async {
                                 if (_emailController.text.isEmpty ||
                                     _passwordController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).clearSnackBars();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(AppStrings.errorEmptyField),
@@ -203,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
 
                                 if (success) {
+                                  ScaffoldMessenger.of(context).clearSnackBars();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(AppStrings.successLoginMessage),
@@ -212,6 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   final message = authProvider.errorMessage ??
                                       AppStrings.errorNetworkError;
                                   final isUnverified = message.toLowerCase().contains('verif');
+                                  ScaffoldMessenger.of(context).clearSnackBars();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(message),

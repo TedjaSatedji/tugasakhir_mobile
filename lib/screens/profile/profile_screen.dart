@@ -240,7 +240,28 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  context.read<AuthProvider>().logout();
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: context.bg,
+                      title: Text('logoutConfirmationTitle'.tr(), style: TextStyle(color: context.text)),
+                      content: Text('logoutConfirmationDesc'.tr(), style: TextStyle(color: context.textDim)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Text('cancel'.tr(), style: TextStyle(color: context.textDim)),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.read<AuthProvider>().logout();
+                          },
+                          child: Text('logout'.tr(), style: const TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.logout),
                 label: Text('logout'.tr()),
