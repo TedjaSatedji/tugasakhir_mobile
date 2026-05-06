@@ -260,6 +260,7 @@ class _MonthlyTab extends StatelessWidget {
               height: 220,
               child: LineChart(
                 LineChartData(
+                  clipData: FlClipData.all(),
                   maxY: chartMax,
                   minY: 0,
                   gridData: FlGridData(
@@ -309,6 +310,7 @@ class _MonthlyTab extends StatelessWidget {
                       spots: List.generate(months.length,
                           (i) => FlSpot(i.toDouble(), months[i].income)),
                       isCurved: true,
+                      preventCurveOverShooting: true,
                       color: AppColors.success,
                       barWidth: 3,
                       dotData: FlDotData(
@@ -329,6 +331,7 @@ class _MonthlyTab extends StatelessWidget {
                       spots: List.generate(months.length,
                           (i) => FlSpot(i.toDouble(), months[i].expense)),
                       isCurved: true,
+                      preventCurveOverShooting: true,
                       color: AppColors.error,
                       barWidth: 3,
                       dotData: FlDotData(
