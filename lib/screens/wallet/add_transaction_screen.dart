@@ -414,6 +414,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                   final rawAmount = _amountController.text.replaceAll(',', '');
                   final amount = double.tryParse(rawAmount) ?? 0;
+
+                  if (amount <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('amountCannotBeZero'.tr()),
+                      ),
+                    );
+                    return;
+                  }
+
                   final category = _selectedType == TransactionType.expense
                       ? _selectedCategory
                       : null;

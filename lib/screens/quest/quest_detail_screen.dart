@@ -10,7 +10,7 @@ import '../../providers/quest_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../models/transaction_model.dart';
 import 'package:intl/intl.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class QuestDetailScreen extends StatefulWidget {
   final QuestModel quest;
 
@@ -355,9 +355,16 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
               onPressed: () async {
                 final rawAmount = amountController.text.replaceAll(',', '');
                 final amount = double.tryParse(rawAmount) ?? 0;
-                if (amount > 0) {
-                  final questProvider = context.read<QuestProvider>();
-                  final dateKey = questProvider.todayKey();
+
+                if (amount <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('amountCannotBeZero'.tr())),
+                  );
+                  return;
+                }
+
+                final questProvider = context.read<QuestProvider>();
+                final dateKey = questProvider.todayKey();
 
                   final result = await context
                       .read<QuestProvider>()
@@ -388,7 +395,6 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Dana berhasil ditambahkan!')),
                   );
-                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryNeon,

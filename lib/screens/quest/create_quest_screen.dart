@@ -303,10 +303,20 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                     return;
                   }
 
+                  final rawAmount = _targetAmountController.text.replaceAll(',', '');
+                  final amount = double.tryParse(rawAmount) ?? 0;
+
+                  if (amount <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('amountCannotBeZero'.tr())),
+                    );
+                    return;
+                  }
+
                   context.read<QuestProvider>().createQuest(
                     _titleController.text,
                     _descriptionController.text,
-                    double.tryParse(_targetAmountController.text) ?? 0,
+                    amount,
                     _selectedCategory,
                     _selectedDeadline,
                   );
