@@ -2,7 +2,7 @@ name: tugasakhir_mobile
 description: "Gen Z Life-RPG & Goal Tracker - Ubah produktivitas menjadi game!"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.5.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
