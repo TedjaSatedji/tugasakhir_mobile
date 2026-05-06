@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +13,7 @@ import '../../models/quest_model.dart'; // used by _DailyMissionTile
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/shop_provider.dart';
 import '../../widgets/level_up_overlay.dart';
 import '../wallet/wallet_screen.dart';
 import '../wallet/add_transaction_screen.dart';
@@ -20,10 +21,12 @@ import '../quest/quest_list_screen.dart';
 import '../stats/stats_screen.dart';
 import '../profile/profile_screen.dart';
 import '../games/budget_invaders_screen.dart';
+import '../games/leaderboard_screen.dart';
 import '../shop/shop_screen.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_screen.dart';
 import '../../core/services/sync_service.dart';
+import '../../core/services/home_widget_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 
@@ -77,9 +80,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refreshData() async {
     await SyncService().pullAll();
     if (!mounted) return;
-    context.read<TransactionProvider>().loadTransactions();
-    context.read<QuestProvider>().loadQuests();
-    context.read<CharacterProvider>().loadCharacter();
+    await context.read<TransactionProvider>().loadTransactions();
+    await context.read<QuestProvider>().loadQuests();
+    await context.read<CharacterProvider>().loadCharacter();
+    await HomeWidgetService.updateFromTransactions(
+      context.read<TransactionProvider>(),
+    );
   }
 
   void _startShakeDetection() {
@@ -92,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final gameState = _budgetInvadersKey.currentState;
       if (gameState != null && gameState.isGameActive) return;
 
-      final double magnitude = sqrt(
+      final double magnitude = math.sqrt(
         event.x * event.x +
         event.y * event.y +
         event.z * event.z,
@@ -272,28 +278,14 @@ class _HomeBody extends StatelessWidget {
                   color: context.primary.withOpacity(0.3),
                 ),
               ),
-              child: Consumer<CharacterProvider>(
-                builder: (context, charProvider, _) {
+              child: Consumer2<CharacterProvider, ShopProvider>(
+                builder: (context, charProvider, shopProvider, _) {
                   final char = charProvider.character;
                   return Row(
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryNeon.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: (char?.avatarUrl.isNotEmpty ?? false)
-                              ? (char!.avatarUrl.startsWith('http')
-                                  ? CachedNetworkImage(imageUrl: char.avatarUrl, fit: BoxFit.cover)
-                                  : Image.file(File(char.avatarUrl), fit: BoxFit.cover))
-                              : Icon(
-                                  Icons.person,
-                                  color: context.primary,
-                                ),
-                        ),
+                      _HomeAvatarFrame(
+                        character: char,
+                        frame: shopProvider.equippedFrame,
                       ),
                       const SizedBox(width: 15),
                       Expanded(
@@ -494,6 +486,136 @@ class _HomeBody extends StatelessWidget {
         ),
       ),
       ),
+    );
+  }
+}
+
+class _HomeAvatarFrame extends StatelessWidget {
+  final dynamic character;
+  final dynamic frame;
+  const _HomeAvatarFrame({this.character, required this.frame});
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 44.0;
+    if (frame.isLeaderboardReward == true) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          RankFramePreview(color: frame.color, size: size),
+          _AvatarImage(character: character, size: size - 10),
+        ],
+      );
+    }
+
+    if (frame.isAnimated == true) {
+      return _AnimatedFrameAvatarSmall(character: character, size: size);
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: frame.color, width: 2),
+      ),
+      child: _AvatarImage(character: character, size: size - 6),
+    );
+  }
+}
+
+class _AvatarImage extends StatelessWidget {
+  final dynamic character;
+  final double size;
+  const _AvatarImage({this.character, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipOval(
+        child: (character?.avatarUrl.isNotEmpty ?? false)
+            ? (character!.avatarUrl.startsWith('http')
+                ? CachedNetworkImage(imageUrl: character.avatarUrl, fit: BoxFit.cover)
+                : Image.file(File(character.avatarUrl), fit: BoxFit.cover))
+            : Container(
+                color: AppColors.primaryNeon.withOpacity(0.15),
+                child: Icon(
+                  Icons.person,
+                  color: context.primary,
+                  size: size * 0.6,
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _AnimatedFrameAvatarSmall extends StatefulWidget {
+  final dynamic character;
+  final double size;
+  const _AnimatedFrameAvatarSmall({this.character, required this.size});
+
+  @override
+  State<_AnimatedFrameAvatarSmall> createState() => _AnimatedFrameAvatarSmallState();
+}
+
+class _AnimatedFrameAvatarSmallState extends State<_AnimatedFrameAvatarSmall>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final hue = _ctrl.value * 360.0;
+        final colors = [
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 90) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 180) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, (hue + 270) % 360, 1, 1).toColor(),
+          HSVColor.fromAHSV(1, hue % 360, 1, 1).toColor(),
+        ];
+        return Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: SweepGradient(
+              colors: colors,
+              transform: GradientRotation(_ctrl.value * 2 * math.pi),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(2),
+            child: ClipOval(
+              child: Container(
+                color: Theme.of(context).cardColor,
+                child: (widget.character?.avatarUrl?.isNotEmpty ?? false)
+                    ? (widget.character!.avatarUrl.startsWith('http')
+                        ? Image.network(widget.character!.avatarUrl, fit: BoxFit.cover)
+                        : Image.file(File(widget.character!.avatarUrl), fit: BoxFit.cover))
+                    : const Icon(Icons.person, size: 20, color: Colors.white54),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -45,7 +45,7 @@ class AppStrings {
   static const String homeTitle = 'Beranda';
   static const String dailyQuest = 'Misi Harian';
   static const String mainQuest = 'Misi Utama';
-  static const String totalSavings = 'Total Tabungan';
+  static const String totalSavings = 'Total Bersih';
   static const String level = 'Level';
   static const String experience = 'XP';
 
@@ -65,7 +65,7 @@ class AppStrings {
   static const String income = 'Pemasukan';
   static const String expense = 'Pengeluaran';
   static const String savings = 'Tabungan';
-  static const String totalBalance = 'Saldo Total';
+  static const String totalBalance = 'Total Bersih';
   static const String addIncome = 'Tambah Pemasukan';
   static const String addExpense = 'Tambah Pengeluaran';
   static const String expenseCategory = 'Kategori Pengeluaran';

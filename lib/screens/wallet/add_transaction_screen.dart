@@ -87,7 +87,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               children: [
                 Expanded(
                   child: _TypeButton(
-                    label: AppStrings.income,
+                    label: 'income'.tr(),
                     isSelected: _selectedType == TransactionType.income,
                     color: AppColors.success,
                     onTap: () {
@@ -100,7 +100,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _TypeButton(
-                    label: AppStrings.expense,
+                    label: 'expense'.tr(),
                     isSelected: _selectedType == TransactionType.expense,
                     color: AppColors.error,
                     onTap: () {

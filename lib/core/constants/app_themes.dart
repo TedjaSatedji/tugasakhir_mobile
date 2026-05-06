@@ -5,31 +5,37 @@ class AppThemes {
   static ThemeData darkCyberpunkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: const Color(0xFF00E676), // Rich Mint Green
-    scaffoldBackgroundColor: const Color(0xFF0D1117), // Deep blue-black
-    cardColor: const Color(0xFF161B22), // Dark surface
+    primaryColor: const Color(0xFF6AAF82), // Muted sage green
+    scaffoldBackgroundColor: const Color(0xFF181C20), // Cool dark slate
+    cardColor: const Color(0xFF21272E), // Deep slate surface
     textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Color(0xFFF3F4F6)),
-      bodyMedium: TextStyle(color: Color(0xFF9CA3AF)),
+      bodyLarge: TextStyle(color: Color(0xFFE8E2D9)),
+      bodyMedium: TextStyle(color: Color(0xFFB7B0A7)),
     ),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF00E676),
+    colorScheme: const ColorScheme(
       brightness: Brightness.dark,
-      background: const Color(0xFF0D1117),
-      surface: const Color(0xFF161B22),
-      secondary: const Color(0xFFD500F9), // Cyberpunk Purple
+      primary: Color(0xFF6AAF82),
+      onPrimary: Color(0xFF0F1411),
+      secondary: Color(0xFFC9A86C),
+      onSecondary: Color(0xFF1B160C),
+      background: Color(0xFF181C20),
+      onBackground: Color(0xFFE8E2D9),
+      surface: Color(0xFF21272E),
+      onSurface: Color(0xFFE8E2D9),
+      error: Color(0xFFEF6A5B),
+      onError: Color(0xFF2B0C08),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF161B22),
+      backgroundColor: Color(0xFF21272E),
       elevation: 0,
       centerTitle: true,
-      iconTheme: IconThemeData(color: Color(0xFFF3F4F6)),
-      titleTextStyle: TextStyle(color: Color(0xFFF3F4F6), fontSize: 20, fontWeight: FontWeight.bold),
+      iconTheme: IconThemeData(color: Color(0xFFE8E2D9)),
+      titleTextStyle: TextStyle(color: Color(0xFFE8E2D9), fontSize: 20, fontWeight: FontWeight.bold),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF161B22),
-      selectedItemColor: Color(0xFF00E676),
-      unselectedItemColor: Color(0xFF9CA3AF),
+      backgroundColor: Color(0xFF21272E),
+      selectedItemColor: Color(0xFF6AAF82),
+      unselectedItemColor: Color(0xFFB7B0A7),
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
@@ -38,31 +44,31 @@ class AppThemes {
   static ThemeData lightMinimalistTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    primaryColor: const Color(0xFF10B981), // Emerald Green
-    scaffoldBackgroundColor: const Color(0xFFF3F4F6), // Cool Gray
-    cardColor: const Color(0xFFFFFFFF), // White
+    primaryColor: const Color(0xFF4A8C62), // Muted green
+    scaffoldBackgroundColor: const Color(0xFFF4F1EC), // Warm paper
+    cardColor: const Color(0xFFFFFFFF), // Clean white
     textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Color(0xFF1F2937)),
-      bodyMedium: TextStyle(color: Color(0xFF6B7280)),
+      bodyLarge: TextStyle(color: Color(0xFF2E3237)),
+      bodyMedium: TextStyle(color: Color(0xFF6F757B)),
     ),
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF10B981),
+      seedColor: const Color(0xFF4A8C62),
       brightness: Brightness.light,
-      background: const Color(0xFFF3F4F6),
+      background: const Color(0xFFF4F1EC),
       surface: const Color(0xFFFFFFFF),
-      secondary: const Color(0xFF6366F1), // Indigo
+      secondary: const Color(0xFFA07840), // Gold/XP
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFFFFFFFF),
       elevation: 0,
       centerTitle: true,
-      iconTheme: IconThemeData(color: Color(0xFF1F2937)),
-      titleTextStyle: TextStyle(color: Color(0xFF1F2937), fontSize: 20, fontWeight: FontWeight.bold),
+      iconTheme: IconThemeData(color: Color(0xFF2E3237)),
+      titleTextStyle: TextStyle(color: Color(0xFF2E3237), fontSize: 20, fontWeight: FontWeight.bold),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Color(0xFFFFFFFF),
-      selectedItemColor: Color(0xFF10B981),
-      unselectedItemColor: Color(0xFF6B7280),
+      selectedItemColor: Color(0xFF4A8C62),
+      unselectedItemColor: Color(0xFF6F757B),
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),

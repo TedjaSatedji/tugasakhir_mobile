@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../core/services/storage_service.dart';
 import '../services/local_database.dart';
 import '../core/services/sync_service.dart';
+import '../core/services/home_widget_service.dart';
 
 class TransactionProvider extends ChangeNotifier {
   final LocalDatabase _db = LocalDatabase.instance;
@@ -95,6 +96,7 @@ class TransactionProvider extends ChangeNotifier {
     // Save as unsynced first; SyncService will mark it synced on successful push
     await _db.upsertTransaction(transaction, isSynced: false);
     SyncService().pushTransaction(transaction);
+    await HomeWidgetService.updateFromTransactions(this);
     _isLoading = false;
     notifyListeners();
   }
@@ -103,6 +105,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions.removeWhere((t) => t.id == transactionId);
     await _db.deleteTransaction(transactionId);
     SyncService().deleteTransaction(transactionId);
+    await HomeWidgetService.updateFromTransactions(this);
     notifyListeners();
   }
 
