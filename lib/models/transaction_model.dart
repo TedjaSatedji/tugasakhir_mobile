@@ -90,4 +90,40 @@ class TransactionModel {
       'missionCompletedDateKey': missionCompletedDateKey,
     };
   }
+
+  TransactionModel copyWith({
+    TransactionType? type,
+    ExpenseCategory? category,
+    double? amount,
+    String? description,
+    DateTime? timestamp,
+    String? receiptImageUrl,
+    String? detectedCategory,
+    double? latitude,
+    double? longitude,
+    String? locationName,
+    int? xpAwarded,
+    int? coinsAwarded,
+    String? missionCompletedId,
+    String? missionCompletedDateKey,
+  }) {
+    return TransactionModel(
+      id: id,
+      userId: userId,
+      type: type ?? this.type,
+      category: category ?? this.category,
+      amount: amount ?? this.amount,
+      description: description ?? this.description,
+      timestamp: timestamp ?? this.timestamp,
+      receiptImageUrl: receiptImageUrl ?? this.receiptImageUrl,
+      detectedCategory: detectedCategory ?? this.detectedCategory,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      locationName: locationName ?? this.locationName,
+      xpAwarded: xpAwarded ?? this.xpAwarded,
+      coinsAwarded: coinsAwarded ?? this.coinsAwarded,
+      missionCompletedId: missionCompletedId ?? this.missionCompletedId,
+      missionCompletedDateKey: missionCompletedDateKey ?? this.missionCompletedDateKey,
+    );
+  }
 }

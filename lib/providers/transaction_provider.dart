@@ -109,6 +109,21 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateTransaction(TransactionModel updated) async {
+    final index = _transactions.indexWhere((t) => t.id == updated.id);
+    if (index == -1) {
+      return;
+    }
+
+    _transactions[index] = updated;
+    _transactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    await _db.upsertTransaction(updated, isSynced: false);
+    SyncService().pushTransaction(updated);
+    await HomeWidgetService.updateFromTransactions(this);
+    notifyListeners();
+  }
+
   List<TransactionModel> getTransactionsByCategory(ExpenseCategory category) {
     return _transactions
         .where((t) => t.category == category)

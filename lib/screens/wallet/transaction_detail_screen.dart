@@ -13,6 +13,7 @@ import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
+import 'edit_transaction_screen.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final TransactionModel transaction;
@@ -21,7 +22,12 @@ class TransactionDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = transaction.type == TransactionType.income;
+    final currentTransaction = context.watch<TransactionProvider>().transactions
+        .firstWhere(
+          (t) => t.id == transaction.id,
+          orElse: () => transaction,
+        );
+    final isIncome = currentTransaction.type == TransactionType.income;
     final color = isIncome ? AppColors.success : AppColors.error;
     final typeLabel = isIncome ? 'income'.tr() : 'expense'.tr();
     final sign = isIncome ? '+' : '-';
@@ -34,6 +40,19 @@ class TransactionDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: AppColors.primaryNeon),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditTransactionScreen(
+                    transaction: currentTransaction,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.delete, color: AppColors.error),
             onPressed: () async {
@@ -78,29 +97,29 @@ class TransactionDetailScreen extends StatelessWidget {
               );
 
               if (confirm == true) {
-                final xpToRemove = transaction.xpAwarded > 0
-                    ? transaction.xpAwarded
-                    : (transaction.amount / 1000).floor();
+                final xpToRemove = currentTransaction.xpAwarded > 0
+                    ? currentTransaction.xpAwarded
+                    : (currentTransaction.amount / 1000).floor();
 
-                if (transaction.missionCompletedId != null &&
-                    transaction.missionCompletedDateKey != null) {
+                if (currentTransaction.missionCompletedId != null &&
+                    currentTransaction.missionCompletedDateKey != null) {
                   await context.read<QuestProvider>().revokeDailyMission(
-                        transaction.missionCompletedId!,
-                        transaction.missionCompletedDateKey!,
+                        currentTransaction.missionCompletedId!,
+                        currentTransaction.missionCompletedDateKey!,
                       );
                 }
 
                 if (xpToRemove > 0) {
                   await context.read<CharacterProvider>().removeXP(xpToRemove);
                 }
-                if (transaction.coinsAwarded > 0) {
+                if (currentTransaction.coinsAwarded > 0) {
                   await context
                       .read<CharacterProvider>()
-                      .removeCoins(transaction.coinsAwarded);
+                      .removeCoins(currentTransaction.coinsAwarded);
                 }
                 await context
                     .read<TransactionProvider>()
-                    .deleteTransaction(transaction.id);
+                    .deleteTransaction(currentTransaction.id);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('transactionDeleted'.tr())),
@@ -133,7 +152,7 @@ class TransactionDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '$sign Rp${NumberFormat('#,##0', 'en_US').format(transaction.amount)}',
+                    '$sign Rp${NumberFormat('#,##0', 'en_US').format(currentTransaction.amount)}',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -181,41 +200,41 @@ class TransactionDetailScreen extends StatelessWidget {
                   _DetailRow(
                     icon: Icons.description,
                     label: 'description'.tr(),
-                    value: transaction.description.isEmpty
+                    value: currentTransaction.description.isEmpty
                         ? 'noDescription'.tr()
-                        : transaction.description,
+                        : currentTransaction.description,
                   ),
                   Divider(color: context.textDim, height: 30),
                   _DetailRow(
                     icon: Icons.calendar_today,
                     label: 'date'.tr(),
                     value: DateFormat('dd MMMM yyyy, HH:mm')
-                        .format(transaction.timestamp),
+                        .format(currentTransaction.timestamp),
                   ),
-                  if (transaction.category != null) ...[
+                  if (currentTransaction.category != null) ...[
                     Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.category,
                       label: 'category'.tr(),
-                      value: _getCategoryLabel(transaction.category!),
+                      value: _getCategoryLabel(currentTransaction.category!),
                     ),
                   ],
-                  if (transaction.detectedCategory != null &&
-                      transaction.detectedCategory!.isNotEmpty) ...[
+                  if (currentTransaction.detectedCategory != null &&
+                      currentTransaction.detectedCategory!.isNotEmpty) ...[
                     Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.auto_fix_high,
                       label: 'aiCategory'.tr(),
-                      value: transaction.detectedCategory!,
+                      value: currentTransaction.detectedCategory!,
                     ),
                   ],
-                  if (transaction.locationName != null &&
-                      transaction.locationName!.isNotEmpty) ...[
+                  if (currentTransaction.locationName != null &&
+                      currentTransaction.locationName!.isNotEmpty) ...[
                     Divider(color: context.textDim, height: 30),
                     _DetailRow(
                       icon: Icons.location_on,
                       label: 'location'.tr(),
-                      value: transaction.locationName!,
+                      value: currentTransaction.locationName!,
                     ),
                   ],
                 ],
@@ -223,7 +242,7 @@ class TransactionDetailScreen extends StatelessWidget {
             ),
 
             // Mini Map
-            if (transaction.latitude != null && transaction.longitude != null) ...[
+            if (currentTransaction.latitude != null && currentTransaction.longitude != null) ...[
               const SizedBox(height: 25),
               Text(
                 'transactionLocation'.tr(),
@@ -242,8 +261,8 @@ class TransactionDetailScreen extends StatelessWidget {
                   child: FlutterMap(
                     options: MapOptions(
                       initialCenter: LatLng(
-                        transaction.latitude!,
-                        transaction.longitude!,
+                        currentTransaction.latitude!,
+                        currentTransaction.longitude!,
                       ),
                       initialZoom: 16,
                       interactionOptions: const InteractionOptions(
@@ -260,8 +279,8 @@ class TransactionDetailScreen extends StatelessWidget {
                         markers: [
                           Marker(
                             point: LatLng(
-                              transaction.latitude!,
-                              transaction.longitude!,
+                              currentTransaction.latitude!,
+                              currentTransaction.longitude!,
                             ),
                             child: Icon(
                               Icons.location_pin,
@@ -278,8 +297,8 @@ class TransactionDetailScreen extends StatelessWidget {
             ],
 
             // Receipt Image
-            if (transaction.receiptImageUrl != null &&
-                transaction.receiptImageUrl!.isNotEmpty) ...[
+            if (currentTransaction.receiptImageUrl != null &&
+                currentTransaction.receiptImageUrl!.isNotEmpty) ...[
               const SizedBox(height: 25),
               Text(
                 'receiptPhoto'.tr(),
@@ -293,9 +312,9 @@ class TransactionDetailScreen extends StatelessWidget {
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: transaction.receiptImageUrl!.startsWith('http')
+                child: currentTransaction.receiptImageUrl!.startsWith('http')
                   ? CachedNetworkImage(
-                      imageUrl: transaction.receiptImageUrl!,
+                      imageUrl: currentTransaction.receiptImageUrl!,
                       width: double.infinity,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
