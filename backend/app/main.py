@@ -90,6 +90,113 @@ def _extract_json_payload(text: str) -> dict:
     return parsed
 
 
+_MONTH_MAP = {
+    "januari": "jan",
+    "january": "jan",
+    "februari": "feb",
+    "february": "feb",
+    "maret": "mar",
+    "march": "mar",
+    "april": "apr",
+    "mei": "may",
+    "may": "may",
+    "juni": "jun",
+    "june": "jun",
+    "juli": "jul",
+    "july": "jul",
+    "agustus": "aug",
+    "august": "aug",
+    "september": "sep",
+    "october": "oct",
+    "oktober": "oct",
+    "november": "nov",
+    "desember": "dec",
+    "december": "dec",
+}
+
+
+def _normalize_month_names(text: str) -> str:
+    lowered = text.lower()
+    for name, abbr in _MONTH_MAP.items():
+        lowered = re.sub(rf"\b{name}\b", abbr, lowered, flags=re.IGNORECASE)
+    return lowered
+
+
+def _normalize_receipt_date(raw: str | None) -> str | None:
+    if not raw:
+        return None
+
+    cleaned = raw.strip()
+    if not cleaned:
+        return None
+
+    cleaned = cleaned.replace(",", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    cleaned = _normalize_month_names(cleaned)
+
+    def try_parse(value: str) -> datetime | None:
+        candidates = [value]
+
+        patterns = [
+            r"\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b",
+            r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b",
+            r"\b\d{1,2}\s+[a-z]{3,9}\s+\d{2,4}\b",
+            r"\b[a-z]{3,9}\s+\d{1,2},?\s+\d{2,4}\b",
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, value, flags=re.IGNORECASE)
+            if match:
+                candidates.append(match.group(0))
+
+        for candidate in candidates:
+            try:
+                return datetime.fromisoformat(candidate)
+            except ValueError:
+                pass
+
+            for fmt in [
+                "%Y-%m-%d",
+                "%Y/%m/%d",
+                "%d-%m-%Y",
+                "%d/%m/%Y",
+                "%m-%d-%Y",
+                "%m/%d/%Y",
+                "%d-%m-%y",
+                "%d/%m/%y",
+                "%m-%d-%y",
+                "%m/%d/%y",
+                "%d %b %Y",
+                "%d %B %Y",
+                "%b %d %Y",
+                "%B %d %Y",
+                "%d %b %y",
+                "%d %B %y",
+                "%b %d %y",
+                "%B %d %y",
+                "%d %b %Y %H:%M",
+                "%d %B %Y %H:%M",
+                "%Y-%m-%d %H:%M",
+                "%Y/%m/%d %H:%M",
+            ]:
+                try:
+                    return datetime.strptime(candidate, fmt)
+                except ValueError:
+                    continue
+
+        return None
+
+    parsed = try_parse(cleaned)
+    if not parsed:
+        return None
+
+    now = datetime.now()
+    if parsed.date() > now.date() + timedelta(days=1):
+        return None
+
+    return parsed.date().isoformat()
+
+
 @app.post("/upload/image")
 async def upload_image(file: UploadFile = File(...)):
     if not file.filename:
@@ -176,10 +283,13 @@ async def extract_receipt(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=502, detail=f"AI response was not JSON: {text[:300]}")
 
+    raw_date = payload_json.get("date")
+    normalized_date = _normalize_receipt_date(raw_date) or _normalize_receipt_date(text)
+
     return schemas.ReceiptExtractResponse(
         amount=payload_json.get("amount"),
         description=payload_json.get("description"),
-        date=payload_json.get("date"),
+        date=normalized_date,
         category=payload_json.get("category"),
         type=payload_json.get("type"),
     )

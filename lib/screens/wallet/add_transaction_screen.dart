@@ -569,6 +569,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         }
       }
 
+      final parsedDate = _parseReceiptDate(result.date);
+      if (parsedDate != null) {
+        _selectedDate = parsedDate;
+      }
+
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('autoFilled'.tr())),
@@ -594,6 +599,124 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     }
     return null;
+  }
+
+  DateTime? _parseReceiptDate(String? raw) {
+    if (raw == null) {
+      return null;
+    }
+
+    final cleaned = raw.trim();
+    if (cleaned.isEmpty) {
+      return null;
+    }
+
+    final normalized = _normalizeMonthNames(cleaned);
+    DateTime? parsed = DateTime.tryParse(normalized);
+
+    final candidates = <String>[normalized];
+    final patterns = <RegExp>[
+      RegExp(r'\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b'),
+      RegExp(r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b'),
+      RegExp(r'\b\d{1,2}\s+[a-zA-Z]{3,9}\s+\d{2,4}\b'),
+      RegExp(r'\b[a-zA-Z]{3,9}\s+\d{1,2},?\s+\d{2,4}\b'),
+    ];
+
+    for (final pattern in patterns) {
+      final match = pattern.firstMatch(normalized);
+      if (match != null) {
+        candidates.add(match.group(0)!);
+      }
+    }
+
+    for (final candidate in candidates) {
+      parsed ??= _parseWithFormats(candidate);
+      if (parsed != null) {
+        break;
+      }
+    }
+
+    if (parsed == null) {
+      return null;
+    }
+
+    final now = DateTime.now();
+    if (parsed.isAfter(now.add(const Duration(days: 1)))) {
+      return null;
+    }
+
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
+
+  DateTime? _parseWithFormats(String value) {
+    const formats = <String>[
+      'yyyy-MM-dd',
+      'yyyy/MM/dd',
+      'dd-MM-yyyy',
+      'dd/MM/yyyy',
+      'MM-dd-yyyy',
+      'MM/dd/yyyy',
+      'dd-MM-yy',
+      'dd/MM/yy',
+      'MM-dd-yy',
+      'MM/dd/yy',
+      'dd MMM yyyy',
+      'dd MMMM yyyy',
+      'MMM dd yyyy',
+      'MMMM dd yyyy',
+      'dd MMM yy',
+      'dd MMMM yy',
+      'MMM dd yy',
+      'MMMM dd yy',
+      'dd MMM yyyy HH:mm',
+      'dd MMMM yyyy HH:mm',
+      'yyyy-MM-dd HH:mm',
+      'yyyy/MM/dd HH:mm',
+    ];
+
+    for (final format in formats) {
+      try {
+        return DateFormat(format, 'en_US').parseStrict(value);
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  String _normalizeMonthNames(String text) {
+    var normalized = text;
+    const monthMap = <String, String>{
+      'januari': 'jan',
+      'january': 'jan',
+      'februari': 'feb',
+      'february': 'feb',
+      'maret': 'mar',
+      'march': 'mar',
+      'april': 'apr',
+      'mei': 'may',
+      'may': 'may',
+      'juni': 'jun',
+      'june': 'jun',
+      'juli': 'jul',
+      'july': 'jul',
+      'agustus': 'aug',
+      'august': 'aug',
+      'september': 'sep',
+      'oktober': 'oct',
+      'october': 'oct',
+      'november': 'nov',
+      'desember': 'dec',
+      'december': 'dec',
+    };
+
+    monthMap.forEach((key, value) {
+      normalized = normalized.replaceAll(
+        RegExp(r'\b' + key + r'\b', caseSensitive: false),
+        value,
+      );
+    });
+    return normalized;
   }
 
   Future<void> _pickDate() async {
