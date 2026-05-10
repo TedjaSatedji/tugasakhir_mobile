@@ -48,6 +48,7 @@ dependencies:
   animations: ^2.0.10
   lottie: ^2.7.0
   fl_chart: ^0.69.0
+  glass_liquid_navbar: ^0.2.0
   
   # Sensors
   sensors_plus: ^6.1.0

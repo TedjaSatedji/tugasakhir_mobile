@@ -33,6 +33,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double fabBottomInset = MediaQuery.of(context).padding.bottom + 8;
     return Scaffold(
       appBar: AppBar(
         title: Text('walletTitle'.tr()),
@@ -67,17 +68,20 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddTransactionScreen(),
-            ),
-          );
-        },
-        backgroundColor: AppColors.primaryNeon,
-        child: const Icon(Icons.add, color: AppColors.darkBg),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: fabBottomInset),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AddTransactionScreen(),
+              ),
+            );
+          },
+          backgroundColor: AppColors.primaryNeon,
+          child: const Icon(Icons.add, color: AppColors.darkBg),
+        ),
       ),
       body: Consumer<TransactionProvider>(
         builder: (context, transProvider, _) {

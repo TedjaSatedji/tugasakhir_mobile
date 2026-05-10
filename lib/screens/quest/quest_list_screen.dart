@@ -37,21 +37,25 @@ class _QuestListScreenState extends State<QuestListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double fabBottomInset = MediaQuery.of(context).padding.bottom + 8;
     return Scaffold(
       appBar: AppBar(
         title: Text('targetSavings'.tr()),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CreateQuestScreen(),
-            ),
-          );
-        },
-        backgroundColor: context.primary,
-        child: Icon(Icons.add, color: context.bg),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: fabBottomInset),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CreateQuestScreen(),
+              ),
+            );
+          },
+          backgroundColor: context.primary,
+          child: Icon(Icons.add, color: context.bg),
+        ),
       ),
       body: Consumer<QuestProvider>(
         builder: (context, questProvider, _) {

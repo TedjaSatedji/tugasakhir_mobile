@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:glass_liquid_navbar/glass_liquid_navbar.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/theme_extensions.dart';
@@ -155,13 +156,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: LiquidGlassNavbar(
         currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: context.card,
-        selectedItemColor: context.primary,
-        unselectedItemColor: context.textDim,
         onTap: (index) async {
           if (_selectedIndex == 5 && index != 5) {
             final state = _budgetInvadersKey.currentState;
@@ -176,28 +174,28 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
+          LiquidNavItem(
+            icon: Icons.home_rounded,
             label: 'homeTitle'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.wallet),
+          LiquidNavItem(
+            icon: Icons.wallet,
             label: 'walletTitle'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.track_changes),
+          LiquidNavItem(
+            icon: Icons.track_changes,
             label: 'target'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart_rounded),
+          LiquidNavItem(
+            icon: Icons.bar_chart_rounded,
             label: 'statsTitle'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
+          LiquidNavItem(
+            icon: Icons.person_rounded,
             label: 'profileTitle'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.videogame_asset_rounded),
+          LiquidNavItem(
+            icon: Icons.videogame_asset_rounded,
             label: 'game'.tr(),
           ),
         ],
