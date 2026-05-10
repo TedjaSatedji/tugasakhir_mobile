@@ -40,6 +40,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  int _previousIndex = 0;
 
   late final List<Widget> _screens;
   final GlobalKey<BudgetInvadersScreenState> _budgetInvadersKey = GlobalKey();
@@ -155,9 +156,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final goingRight = _selectedIndex > _previousIndex;
     return Scaffold(
       extendBody: true,
-      body: _screens[_selectedIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          // Determine direction: new screen slides in from right if going right, from left if going left
+          final isNewChild = child.key == ValueKey(_selectedIndex);
+          final slideIn = Tween<Offset>(
+            begin: isNewChild
+                ? Offset(goingRight ? 1.0 : -1.0, 0)
+                : Offset(goingRight ? -1.0 : 1.0, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          ));
+          return SlideTransition(
+            position: slideIn,
+            child: child,
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey(_selectedIndex),
+          child: _screens[_selectedIndex],
+        ),
+      ),
       bottomNavigationBar: LiquidGlassNavbar(
         currentIndex: _selectedIndex,
         onTap: (index) async {
@@ -170,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           }
           setState(() {
+            _previousIndex = _selectedIndex;
             _selectedIndex = index;
           });
         },
