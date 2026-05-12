@@ -19,6 +19,23 @@ class _AppLockScreenState extends State<AppLockScreen> {
   void initState() {
     super.initState();
     _pinController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tryBiometricOnOpen();
+    });
+  }
+
+  Future<void> _tryBiometricOnOpen() async {
+    if (!mounted) return;
+    final authProvider = context.read<AuthProvider>();
+    if (!authProvider.isBiometricUnlockEnabled) return;
+    final success = await authProvider.unlockWithBiometric();
+    if (!mounted) return;
+    if (!success) {
+      final message = authProvider.errorMessage ?? AppStrings.errorNetworkError;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
   }
 
   @override

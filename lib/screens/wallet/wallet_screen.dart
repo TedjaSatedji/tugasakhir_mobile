@@ -140,6 +140,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     Expanded(
                       child: _StatCard(
                         title: 'income'.tr(),
+                        subtitle: 'allTime'.tr(),
                         amount: transProvider.totalIncome,
                         icon: Icons.arrow_downward,
                         color: AppColors.success,
@@ -149,6 +150,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     Expanded(
                       child: _StatCard(
                         title: 'expense'.tr(),
+                        subtitle: 'allTime'.tr(),
                         amount: transProvider.totalExpense,
                         icon: Icons.arrow_upward,
                         color: AppColors.error,
@@ -258,12 +260,17 @@ class _WalletScreenState extends State<WalletScreen> {
                       return matchesQuery && matchesType && matchesCategory;
                     }).toList();
 
+                    // Distinguish: truly no transactions vs filtered-out results
                     if (filteredTransactions.isEmpty) {
+                      final hasAnyTransactions = transProvider.transactions.isNotEmpty;
+                      if (!hasAnyTransactions) {
+                        return _OnboardingNudge();
+                      }
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: Text(
-                            'noTransactionYet'.tr(),
+                            'noResultsFilter'.tr(),
                             style: TextStyle(
                               color: context.textDim,
                               fontFamily: 'Poppins',
@@ -360,14 +367,142 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
+// ── Onboarding Nudge ─────────────────────────────────────────────────────────
+
+class _OnboardingNudge extends StatefulWidget {
+  @override
+  State<_OnboardingNudge> createState() => _OnboardingNudgeState();
+}
+
+class _OnboardingNudgeState extends State<_OnboardingNudge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _bounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _bounce = Tween<double>(begin: -6, end: 6).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 8),
+      child: Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: context.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: context.primary.withOpacity(0.25)),
+          boxShadow: [
+            BoxShadow(
+              color: context.primary.withOpacity(0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            AnimatedBuilder(
+              animation: _bounce,
+              builder: (_, __) => Transform.translate(
+                offset: Offset(0, _bounce.value),
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: context.primary.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: context.primary,
+                    size: 36,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'onboardingWalletTitle'.tr(),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+                color: context.text,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'onboardingWalletDesc'.tr(),
+              style: TextStyle(
+                fontSize: 13,
+                color: context.textDim,
+                fontFamily: 'Poppins',
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddTransactionScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(
+                  'onboardingWalletCta'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.primary,
+                  foregroundColor: AppColors.darkBg,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final double amount;
   final IconData icon;
   final Color color;
 
   const _StatCard({
     required this.title,
+    this.subtitle,
     required this.amount,
     required this.icon,
     required this.color,
@@ -399,6 +534,18 @@ class _StatCard extends StatelessWidget {
               ),
             ],
           ),
+          if (subtitle != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                subtitle!,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: context.textDim.withOpacity(0.6),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
           const SizedBox(height: 10),
           Text(
             'Rp${NumberFormat('#,##0', 'en_US').format(amount)}',

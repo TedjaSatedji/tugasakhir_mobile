@@ -342,7 +342,7 @@ class _HomeBody extends StatelessWidget {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: LinearProgressIndicator(
-                                      value: _xpProgress(char?.totalXP ?? 0),
+                                      value: CharacterProvider.xpProgress(char?.totalXP ?? 0),
                                       backgroundColor: AppColors.textSecondary.withOpacity(0.2),
                                       color: AppColors.xpColor,
                                       minHeight: 6,
@@ -446,6 +446,7 @@ class _HomeBody extends StatelessWidget {
                           Expanded(
                             child: _MiniStatCard(
                               title: 'income'.tr(),
+                              subtitle: 'allTime'.tr(),
                               amount: 'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.totalIncome)}',
                               icon: Icons.arrow_downward,
                               color: AppColors.success,
@@ -455,6 +456,7 @@ class _HomeBody extends StatelessWidget {
                           Expanded(
                             child: _MiniStatCard(
                               title: 'expense'.tr(),
+                              subtitle: 'allTime'.tr(),
                               amount: 'Rp${NumberFormat('#,##0', 'en_US').format(transProvider.totalExpense)}',
                               icon: Icons.arrow_upward,
                               color: AppColors.error,
@@ -462,6 +464,36 @@ class _HomeBody extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (transProvider.transactions.isEmpty) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: context.primary.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: context.primary.withOpacity(0.2)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('👆', style: TextStyle(fontSize: 18)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'onboardingHomeDesc'.tr(),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: context.primary,
+                                    fontFamily: 'Poppins',
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -646,12 +678,14 @@ class _AnimatedFrameAvatarSmallState extends State<_AnimatedFrameAvatarSmall>
 
 class _MiniStatCard extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final String amount;
   final IconData icon;
   final Color color;
 
   const _MiniStatCard({
     required this.title,
+    this.subtitle,
     required this.amount,
     required this.icon,
     required this.color,
@@ -681,6 +715,15 @@ class _MiniStatCard extends StatelessWidget {
                     fontFamily: 'Poppins',
                   ),
                 ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: context.textDim.withOpacity(0.6),
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
                 Text(
                   amount,
                   style: TextStyle(
@@ -756,12 +799,4 @@ class _DailyMissionTile extends StatelessWidget {
   }
 }
 
-double _xpProgress(int totalXp) {
-  final level = CharacterProvider.levelForXp(totalXp);
-  final intoLevel = CharacterProvider.xpIntoLevel(totalXp);
-  final required = CharacterProvider.xpRequiredForNextLevel(level);
-  if (required <= 0) {
-    return 0;
-  }
-  return (intoLevel / required).clamp(0.0, 1.0);
-}
+// _xpProgress removed — use CharacterProvider.xpProgress(totalXp) instead.

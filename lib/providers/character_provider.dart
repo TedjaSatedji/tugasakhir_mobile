@@ -260,6 +260,15 @@ class CharacterProvider extends ChangeNotifier {
         ((xpIncrementPerLevel * n * (n - 1)) ~/ 2);
   }
 
+  /// Returns a 0.0–1.0 progress value for the XP bar within the current level.
+  static double xpProgress(int totalXp) {
+    final level = levelForXp(totalXp);
+    final into = xpIntoLevel(totalXp);
+    final required = xpRequiredForNextLevel(level);
+    if (required <= 0) return 0;
+    return (into / required).clamp(0.0, 1.0);
+  }
+
   Future<void> updateCharacterName(String newName) async {
     _character ??= _createDefaultCharacter();
     _character = _character!.copyWith(name: newName);

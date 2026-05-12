@@ -179,14 +179,15 @@ class QuestProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
+    // Scale XP with target: 100 base + 1 XP per 10,000 Rp, capped at 2000
+    final scaledXp = (100 + (targetAmount / 10000)).round().clamp(100, 2000);
 
     final quest = QuestModel(
       id: const Uuid().v4(),
       userId: StorageService.currentUserId,
       title: title,
       description: description,
-      xpReward: 500, // Fixed XP reward for reaching a goal
+      xpReward: scaledXp,
       targetAmount: targetAmount,
       currentSavedAmount: 0,
       category: category,

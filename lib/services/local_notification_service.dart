@@ -61,7 +61,7 @@ class LocalNotificationService {
     return granted ?? false;
   }
 
-  Future<void> scheduleDailyReminder(TimeOfDay time) async {
+  Future<void> scheduleDailyReminder(TimeOfDay time, {String? title, String? body}) async {
     await requestPermissions();
 
     await flutterLocalNotificationsPlugin.cancel(id: 1); // cancel previous if any
@@ -95,8 +95,8 @@ class LocalNotificationService {
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id: 1,
-      title: 'Waktunya Mencatat Keuangan!',
-      body: 'Jangan lupa catat pengeluaran hari ini ya.',
+      title: title ?? 'Waktunya Mencatat Keuangan!',
+      body: body ?? 'Jangan lupa catat pengeluaran hari ini ya.',
       scheduledDate: scheduledDate,
       notificationDetails: platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

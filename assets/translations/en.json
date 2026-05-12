@@ -162,5 +162,13 @@
   "noDataYet": "No data yet",
   "noActivity": "No activity",
   "today": "Today",
-  "game": "Game"
+  "game": "Game",
+  "notifReminderTitle": "Time to Log Your Finances!",
+  "notifReminderBody": "Don't forget to record your expenses for today.",
+  "allTime": "All time",
+  "onboardingWalletTitle": "No transactions yet!",
+  "onboardingWalletDesc": "Start tracking your money by recording your first income or expense.",
+  "onboardingWalletCta": "Add First Transaction",
+  "onboardingHomeDesc": "Shake your phone or tap + to add your first transaction and start your financial journey!",
+  "noResultsFilter": "No transactions match your filter"
 }

@@ -59,19 +59,7 @@ class TransactionProvider extends ChangeNotifier {
     String? missionCompletedId,
     String? missionCompletedDateKey,
   }) async {
-    _isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    String? finalImageUrl = receiptImageUrl;
-    if (receiptImageUrl != null && !receiptImageUrl.startsWith('http')) {
-      final uploadedUrl = await SyncService().uploadImage(receiptImageUrl);
-      if (uploadedUrl != null) {
-        finalImageUrl = uploadedUrl;
-      }
-    }
-
+    // Save locally with local image path immediately — no fake delay
     final transaction = TransactionModel(
       id: const Uuid().v4(),
       userId: StorageService.currentUserId,
@@ -80,7 +68,7 @@ class TransactionProvider extends ChangeNotifier {
       amount: amount,
       description: description,
       timestamp: timestamp ?? DateTime.now(),
-      receiptImageUrl: finalImageUrl,
+      receiptImageUrl: receiptImageUrl,
       latitude: latitude,
       longitude: longitude,
       locationName: locationName,
@@ -92,13 +80,27 @@ class TransactionProvider extends ChangeNotifier {
 
     _transactions.add(transaction);
     _transactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
-    // Save as unsynced first; SyncService will mark it synced on successful push
     await _db.upsertTransaction(transaction, isSynced: false);
-    SyncService().pushTransaction(transaction);
     await HomeWidgetService.updateFromTransactions(this);
-    _isLoading = false;
     notifyListeners();
+
+    // Upload image in background if it's a local file path
+    if (receiptImageUrl != null && !receiptImageUrl.startsWith('http')) {
+      SyncService().uploadImage(receiptImageUrl).then((uploadedUrl) async {
+        if (uploadedUrl != null) {
+          final updated = transaction.copyWith(receiptImageUrl: uploadedUrl);
+          final idx = _transactions.indexWhere((t) => t.id == transaction.id);
+          if (idx != -1) _transactions[idx] = updated;
+          await _db.upsertTransaction(updated, isSynced: false);
+          notifyListeners();
+          SyncService().pushTransaction(updated);
+        } else {
+          SyncService().pushTransaction(transaction);
+        }
+      });
+    } else {
+      SyncService().pushTransaction(transaction);
+    }
   }
 
   Future<void> deleteTransaction(String transactionId) async {

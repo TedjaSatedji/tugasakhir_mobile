@@ -45,7 +45,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setInt('daily_reminder_minute', _reminderTime.minute);
 
     if (_dailyReminderEnabled) {
-      await LocalNotificationService().scheduleDailyReminder(_reminderTime);
+      await LocalNotificationService().scheduleDailyReminder(
+        _reminderTime,
+        title: 'notifReminderTitle'.tr(),
+        body: 'notifReminderBody'.tr(),
+      );
     } else {
       await LocalNotificationService().cancelReminder();
     }

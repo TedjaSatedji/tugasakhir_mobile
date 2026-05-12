@@ -175,7 +175,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             const SizedBox(height: 10),
             TextField(
               controller: _amountController,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 _CurrencyInputFormatter(maxDigits: _maxAmountDigits),
               ],
@@ -377,16 +377,43 @@ class _CurrencyInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
-    if (digitsOnly.isEmpty) {
-      return const TextEditingValue(text: '');
+    final text = newValue.text;
+
+    // Allow empty input
+    if (text.isEmpty) return newValue;
+
+    // Allow a bare decimal point as a starting input (e.g. user types ".")
+    if (text == '.') {
+      return newValue.copyWith(
+        text: '0.',
+        selection: const TextSelection.collapsed(offset: 2),
+      );
     }
 
-    final trimmed = digitsOnly.length > maxDigits
-        ? digitsOnly.substring(0, maxDigits)
-        : digitsOnly;
-    final formatted =
-        NumberFormat.decimalPattern('en_US').format(int.parse(trimmed));
+    // Only allow digits and a single decimal point
+    if (!RegExp(r'^\d*\.?\d*$').hasMatch(text)) {
+      return oldValue;
+    }
+
+    // Split into integer and decimal parts
+    final parts = text.split('.');
+    final integerPart = parts[0];
+    final hasDecimal = parts.length > 1;
+    final decimalPart = hasDecimal ? parts[1] : '';
+
+    // Enforce max integer digit limit (ignoring commas)
+    final rawIntegerDigits = integerPart.replaceAll(',', '');
+    if (rawIntegerDigits.length > maxDigits) return oldValue;
+
+    // Format the integer part with thousand separators
+    final formattedInteger = rawIntegerDigits.isEmpty
+        ? ''
+        : NumberFormat.decimalPattern('en_US').format(int.parse(rawIntegerDigits));
+
+    // Re-assemble
+    final formatted = hasDecimal
+        ? '$formattedInteger.$decimalPart'
+        : formattedInteger;
 
     return TextEditingValue(
       text: formatted,

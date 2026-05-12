@@ -162,5 +162,13 @@
   "noDataYet": "Belum ada data",
   "noActivity": "Tidak ada aktivitas",
   "today": "Hari ini",
-  "game": "Game"
+  "game": "Game",
+  "notifReminderTitle": "Waktunya Mencatat Keuangan!",
+  "notifReminderBody": "Jangan lupa catat pengeluaran hari ini ya.",
+  "allTime": "Semua waktu",
+  "onboardingWalletTitle": "Belum ada transaksi!",
+  "onboardingWalletDesc": "Mulai catat keuanganmu dengan merekam pemasukan atau pengeluaran pertamamu.",
+  "onboardingWalletCta": "Tambah Transaksi Pertama",
+  "onboardingHomeDesc": "Kocok ponselmu atau ketuk + untuk menambahkan transaksi pertama dan mulai perjalanan keuanganmu!",
+  "noResultsFilter": "Tidak ada transaksi yang sesuai filter"
 }
