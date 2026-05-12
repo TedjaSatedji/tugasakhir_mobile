@@ -46,7 +46,10 @@ class _Particle {
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
 class BudgetInvadersScreen extends StatefulWidget {
-  const BudgetInvadersScreen({super.key});
+  /// When true the game starts immediately (pushed as a full-screen route).
+  /// When false (default) the lobby/start screen is shown inside the tab.
+  final bool autoStart;
+  const BudgetInvadersScreen({super.key, this.autoStart = false});
 
   @override
   State<BudgetInvadersScreen> createState() => BudgetInvadersScreenState();
@@ -70,13 +73,13 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   // Invaders
   final List<_Invader> _invaders = [];
 
-  // Smooth invader movement state
+  // ── Smooth invader movement (speed scales as enemies die) ───────────────
   bool _invaderGoingRight = true;
-  double _invaderSpeedX = 60.0; // px/sec horizontal speed
-  double _invaderDropAmount = 0.0; // pending drop distance
-  double _invaderDropProgress = 0.0; // how much of the drop is done
-  static const double _invaderDropStep = 22.0; // px to drop each direction change
-  static const double _invaderDropSpeed = 80.0; // px/sec drop speed
+  int _invaderTotal = 0;           // total enemies at wave start
+  double _invaderBaseSpeedX = 60.0; // px/sec at full grid
+  double _invaderMaxSpeedX  = 400.0; // px/sec when last enemy alive
+  // Instant drop distance on wall hit (≈ one grid row)
+  double _invaderDropY = 20.0;
 
   double _enemyShootTimer = 0;
 
@@ -159,11 +162,23 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     });
   }
 
+  void _enterFullscreen() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  void _exitFullscreen() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+  }
+
   @override
   void dispose() {
     _gyroSubscription?.cancel();
     _userAccelSubscription?.cancel();
     _ticker.dispose();
+    _exitFullscreen();
     super.dispose();
   }
 
@@ -224,22 +239,28 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     _gameStarted = true;
     _lastTime = Duration.zero;
     if (!_ticker.isActive) _ticker.start();
+    _enterFullscreen();
   }
 
   void _spawnWave() {
     _invaders.clear();
     _invaderGoingRight = true;
-    _invaderDropAmount = 0.0;
-    _invaderDropProgress = 0.0;
 
-    // Base speed scales up every wave, no hard cap
-    _invaderSpeedX = 30.0 + (_wave - 1) * 15.0;
 
-    const cols = 6, rows = 4;
-    final startX = _W * 0.18;
-    const startY = 80.0;
-    final spacingX = (_W - startX * 2) / (cols - 1);
-    const spacingY = 50.0;
+    // Grow the grid slightly with each wave (capped)
+    final cols = (6 + (_wave - 1)).clamp(6, 11);
+    final rows = (3 + (_wave - 1)).clamp(3, 5);
+
+    // Step size and drop scale with screen so it feels the same on any device
+    _invaderBaseSpeedX = _W * 0.08 + (_wave - 1) * _W * 0.01; // grows slightly each wave
+    _invaderMaxSpeedX  = _W * 0.65;
+    _invaderDropY      = _H * 0.025;
+
+    final spacingX = _W * 0.64 / (cols - 1);
+    final spacingY = 46.0;
+    final startX  = _W * 0.18;
+    const startY  = 70.0;
+
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
         _invaders.add(_Invader(
@@ -249,6 +270,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
         ));
       }
     }
+    _invaderTotal = _invaders.length;
   }
 
   void _spawnShields() {
@@ -284,15 +306,6 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     });
   }
 
-  // ─── Returns a speed multiplier based on alive count (fewer = faster) ───
-  double _invaderSpeedMultiplier() {
-    final total = _invaders.length;
-    final alive = _invaders.where((i) => i.alive).length;
-    if (total == 0) return 1.0;
-    // Scale from 1.0 at full grid to 2.0 at last invader
-    final frac = alive / total;
-    return 1.0 + (1.0 - frac) * 1.0;
-  }
 
   void _update(double dt) {
     // ── Player movement via drag accumulator ─────────────────────────────
@@ -326,8 +339,6 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
           HapticFeedback.lightImpact();
         }
       }
-      // vs shields
-      _shields.removeWhere((s) => s.contains(Offset(b.x, b.y)));
     }
 
     // ── Enemy bullet vs player ───────────────────────────────────────────
@@ -341,17 +352,27 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
         if (_lives <= 0) {
           _gameOver = true;
           _ticker.stop();
+          _exitFullscreen();
           _saveHighScore();
         }
       }
-      // vs shields
-      _shields.removeWhere((s) => s.contains(Offset(b.x, b.y)));
+      // vs shields — use rect overlap so thin bullets don't pass through
+      final bulletRect = Rect.fromCenter(
+        center: Offset(b.x, b.y),
+        width: 4,
+        height: 10,
+      );
+      final hitShield = _shields.indexWhere((s) => s.overlaps(bulletRect));
+      if (hitShield != -1) {
+        _shields.removeAt(hitShield);
+        b.y = 9999; // kill the bullet
+      }
     }
 
     // ── Remove off-screen bullets ────────────────────────────────────────
     _bullets.removeWhere((b) => b.y < -10 || b.y > _H + 10);
 
-    // ── Invader smooth movement ──────────────────────────────────────────
+    // ── Space Invaders step-based movement ──────────────────────────────────
     {
       final alive = _invaders.where((i) => i.alive).toList();
 
@@ -366,54 +387,57 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
         _spawnWave();
         _spawnShields();
       } else {
-        final speedMul = _invaderSpeedMultiplier();
-        final effectiveSpeedX = _invaderSpeedX * speedMul;
+        // Smooth velocity-based movement; speed scales linearly with kill fraction
+        final killFraction = 1.0 - (alive.length / _invaderTotal.clamp(1, 999));
+        final speedX = _invaderBaseSpeedX +
+            killFraction * (_invaderMaxSpeedX - _invaderBaseSpeedX);
 
-        if (_invaderDropAmount > 0) {
-          // Currently dropping — move everything down
-          final dropThisFrame = _invaderDropSpeed * dt * speedMul;
-          final actual = min(dropThisFrame, _invaderDropAmount);
+        final dx = (_invaderGoingRight ? 1 : -1) * speedX * dt;
+        for (final inv in alive) {
+          inv.x += dx;
+        }
+
+        // Wall detection: instant drop + direction flip
+        final rightmost = alive.map((i) => i.x).reduce(max);
+        final leftmost  = alive.map((i) => i.x).reduce(min);
+
+        final hitRight = _invaderGoingRight && rightmost >= _W - 20;
+        final hitLeft  = !_invaderGoingRight && leftmost  <= 20;
+
+        if (hitRight || hitLeft) {
+          _invaderGoingRight = !_invaderGoingRight;
           for (final inv in alive) {
-            inv.y += actual;
+            inv.y += _invaderDropY;
           }
-          _invaderDropAmount -= actual;
-
-          // Check if invaders reached player line after drop
           if (alive.any((i) => i.y >= _playerY - 20)) {
             _gameOver = true;
             _ticker.stop();
+            _exitFullscreen();
             _saveHighScore();
-          }
-        } else {
-          // Horizontal movement
-          final dx = (_invaderGoingRight ? 1 : -1) * effectiveSpeedX * dt;
-          for (final inv in alive) {
-            inv.x += dx;
-          }
-
-          // Check bounds
-          final rightmost = alive.map((i) => i.x).reduce(max);
-          final leftmost = alive.map((i) => i.x).reduce(min);
-
-          if (_invaderGoingRight && rightmost >= _W - 28) {
-            _invaderGoingRight = false;
-            _invaderDropAmount = _invaderDropStep;
-          } else if (!_invaderGoingRight && leftmost <= 28) {
-            _invaderGoingRight = true;
-            _invaderDropAmount = _invaderDropStep;
           }
         }
       }
     }
 
-    // ── Enemy shooting ───────────────────────────────────────────────────
+    // ── Enemy shooting (original: bottom-most alive in a random column) ────
     _enemyShootTimer += dt;
-    final shootInterval = max(0.3, 2.5 - (_wave - 1) * 0.2);
+    // Shoot interval shrinks with wave; floor at 0.4 s
+    final shootInterval = max(0.4, 2.0 - (_wave - 1) * 0.15);
     if (_enemyShootTimer >= shootInterval) {
       _enemyShootTimer = 0;
       final alive = _invaders.where((i) => i.alive).toList();
       if (alive.isNotEmpty) {
-        final shooter = alive[_rng.nextInt(alive.length)];
+        // Group by column (enemies share x within ±4 px because they move together)
+        final Map<int, List<_Invader>> byCol = {};
+        for (final inv in alive) {
+          final col = (inv.x / 40.0).round(); // group enemies by ~40px column buckets
+          byCol.putIfAbsent(col, () => []).add(inv);
+        }
+        // Pick a random column and shoot from its bottom-most invader
+        final cols = byCol.values.toList();
+        final colInvaders = cols[_rng.nextInt(cols.length)];
+        colInvaders.sort((a, b) => b.y.compareTo(a.y)); // highest y = bottom
+        final shooter = colInvaders.first;
         _bullets.add(_Bullet(x: shooter.x, y: shooter.y + 16, isEnemy: true));
       }
     }
@@ -558,6 +582,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   }
 
   void resetGame() {
+    _exitFullscreen();
     setState(() {
       _gameStarted = false;
       _gameOver = false;
@@ -569,29 +594,48 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !isGameActive,
+      // In autoStart (game route): only intercept while game is active.
+      // In lobby (tab): intercept game-over so back resets to start screen.
+      canPop: widget.autoStart ? !isGameActive : (!isGameActive && !_gameOver),
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        final shouldQuit = await _onWillPop();
-        if (shouldQuit && mounted) {
+        if (!widget.autoStart && _gameOver) {
+          // Lobby mode + game over → reset to start screen
           resetGame();
+          return;
+        }
+        if (isGameActive) {
+          final shouldQuit = await _onWillPop();
+          if (shouldQuit && mounted) Navigator.of(context).pop();
         }
       },
       child: Scaffold(
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
         backgroundColor: AppColors.darkBg,
-        leading: isGameActive
+        leading: widget.autoStart
+            // ── Full-screen game route: always show back button
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () async {
-                  final shouldQuit = await _onWillPop();
-                  if (shouldQuit && mounted) {
-                    resetGame();
+                  if (isGameActive) {
+                    final shouldQuit = await _onWillPop();
+                    if (shouldQuit && mounted) Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pop();
                   }
                 },
               )
-            : null,
+            // ── Lobby tab: back button only while game is active
+            : isGameActive
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () async {
+                      final shouldQuit = await _onWillPop();
+                      if (shouldQuit && mounted) resetGame();
+                    },
+                  )
+                : null,
         title: Row(
           children: [
             const Text('💰 Budget Invaders',
@@ -625,7 +669,15 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       body: LayoutBuilder(builder: (context, constraints) {
         _W = constraints.maxWidth;
         _H = constraints.maxHeight;
-        if (_playerY == 0) _playerY = _H - 80;
+        if (_playerY == 0) {
+          _playerY = _H - 80;
+          // Auto-start game on first layout (only in autoStart mode)
+          if (widget.autoStart && !_gameStarted && !_gameOver) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_gameStarted) _initGame();
+            });
+          }
+        }
 
         // Wrap in GestureDetector for drag-to-move on the game canvas
         return GestureDetector(
@@ -771,8 +823,16 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: _initGame,
+              onPressed: () {
+                // Push a full-screen game route (hides navbar)
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const BudgetInvadersScreen(autoStart: true),
+                  ),
+                );
+              },
               child: const Text('MULAI GAME',
+
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
