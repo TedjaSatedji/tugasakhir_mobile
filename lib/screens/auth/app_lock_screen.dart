@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class AppLockScreen extends StatefulWidget {
   const AppLockScreen({super.key});
@@ -32,9 +33,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
     if (!mounted) return;
     if (!success) {
       final message = authProvider.errorMessage ?? AppStrings.errorNetworkError;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      AppSnackbar.show(context, message: message, isError: false);
     }
   }
 
@@ -117,11 +116,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                               ? null
                               : () async {
                                   if (_pinController.text.length != 6) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(AppStrings.pinHelper),
-                                      ),
-                                    );
+                                    AppSnackbar.show(context, message: AppStrings.pinHelper, isError: false);
                                     return;
                                   }
 
@@ -136,9 +131,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                                   if (!success) {
                                     final message = authProvider.errorMessage ??
                                         AppStrings.errorNetworkError;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)),
-                                    );
+                                    AppSnackbar.show(context, message: message, isError: false);
                                   }
                                 },
                           child: authProvider.isLoading
@@ -177,9 +170,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                                   if (!success) {
                                     final message = authProvider.errorMessage ??
                                         AppStrings.errorNetworkError;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)),
-                                    );
+                                    AppSnackbar.show(context, message: message, isError: false);
                                   }
                                 },
                           child: const Text(

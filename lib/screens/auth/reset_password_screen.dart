@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({
@@ -141,21 +142,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             : () async {
                                 if (_passwordController.text.isEmpty ||
                                     _confirmPasswordController.text.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(AppStrings.errorEmptyField),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: AppStrings.errorEmptyField, isError: true);
                                   return;
                                 }
 
                                 if (_passwordController.text !=
                                     _confirmPasswordController.text) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(AppStrings.errorPasswordMismatch),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: AppStrings.errorPasswordMismatch, isError: true);
                                   return;
                                 }
 
@@ -170,11 +163,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 }
 
                                 if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(AppStrings.successResetPasswordMessage),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: AppStrings.successResetPasswordMessage, isError: false);
 
                                   Navigator.popUntil(
                                     context,
@@ -183,11 +172,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 } else {
                                   final message = authProvider.errorMessage ??
                                       AppStrings.errorNetworkError;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(message),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: message, isError: false);
                                 }
                               },
                         child: authProvider.isLoading

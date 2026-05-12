@@ -18,6 +18,7 @@ import '../../providers/quest_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
 import '../../widgets/coin_reward_overlay.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -404,11 +405,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 onPressed: () async {
                   if (_amountController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('amountCannotBeEmpty'.tr()),
-                      ),
-                    );
+                    AppSnackbar.show(context, message: 'amountCannotBeEmpty'.tr(), isError: true);
                     return;
                   }
 
@@ -416,11 +413,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   final amount = double.tryParse(rawAmount) ?? 0;
 
                   if (amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('amountCannotBeZero'.tr()),
-                      ),
-                    );
+                    AppSnackbar.show(context, message: 'amountCannotBeZero'.tr(), isError: true);
                     return;
                   }
 
@@ -475,11 +468,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   );
 
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('transactionSuccess'.tr()),
-                    ),
-                  );
+                  AppSnackbar.show(context, message: 'transactionSuccess'.tr(), isError: false);
                 },
                 child: Text(
                   'saveTransaction'.tr(),
@@ -531,9 +520,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   Future<void> _scanReceipt() async {
     if (_receiptImagePath == null || _receiptImagePath!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('selectPhotoFirst'.tr())),
-      );
+      AppSnackbar.show(context, message: 'selectPhotoFirst'.tr(), isError: false);
       return;
     }
 
@@ -575,13 +562,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
 
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('autoFilled'.tr())),
-      );
+      AppSnackbar.show(context, message: 'autoFilled'.tr(), isError: false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      AppSnackbar.show(context, message: e.toString(), isError: false);
     } finally {
       if (mounted) {
         setState(() {
@@ -753,9 +736,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final position = await _locationService.getCurrentPosition();
       if (position == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('cannotGetLocation'.tr())),
-          );
+          AppSnackbar.show(context, message: 'cannotGetLocation'.tr(), isError: true);
         }
         return;
       }
@@ -774,9 +755,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mendapatkan lokasi: $e')),
-        );
+        AppSnackbar.show(context, message: 'Gagal mendapatkan lokasi: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLocating = false);

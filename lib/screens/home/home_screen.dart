@@ -9,6 +9,7 @@ import 'package:glass_liquid_navbar/glass_liquid_navbar.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/theme_extensions.dart';
+import '../../core/utils/app_snackbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../models/quest_model.dart'; // used by _DailyMissionTile
 import '../../providers/character_provider.dart';
@@ -121,26 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openAddTransaction() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.add_card, color: AppColors.darkBg),
-            const SizedBox(width: 10),
-            Text(
-              'shakeToAddTransaction'.tr(),
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkBg,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primaryNeon,
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
+    AppSnackbar.show(
+      context,
+      message: 'shakeToAddTransaction'.tr(),
+      icon: Icons.add_card,
     );
     Navigator.push(
       context,

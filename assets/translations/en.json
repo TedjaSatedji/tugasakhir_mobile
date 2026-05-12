@@ -170,5 +170,8 @@
   "onboardingWalletDesc": "Start tracking your money by recording your first income or expense.",
   "onboardingWalletCta": "Add First Transaction",
   "onboardingHomeDesc": "Shake your phone or tap + to add your first transaction and start your financial journey!",
-  "noResultsFilter": "No transactions match your filter"
+  "noResultsFilter": "No transactions match your filter",
+  "deleteTargetTitle": "Delete Target?",
+  "deleteTargetDesc": "Are you sure you want to delete this target? Deleted data cannot be recovered.",
+  "targetDeleted": "Target deleted"
 }

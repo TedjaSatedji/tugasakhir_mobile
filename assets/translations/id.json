@@ -170,5 +170,8 @@
   "onboardingWalletDesc": "Mulai catat keuanganmu dengan merekam pemasukan atau pengeluaran pertamamu.",
   "onboardingWalletCta": "Tambah Transaksi Pertama",
   "onboardingHomeDesc": "Kocok ponselmu atau ketuk + untuk menambahkan transaksi pertama dan mulai perjalanan keuanganmu!",
-  "noResultsFilter": "Tidak ada transaksi yang sesuai filter"
+  "noResultsFilter": "Tidak ada transaksi yang sesuai filter",
+  "deleteTargetTitle": "Hapus Target?",
+  "deleteTargetDesc": "Apakah kamu yakin ingin menghapus target ini? Data yang dihapus tidak bisa dikembalikan.",
+  "targetDeleted": "Target dihapus"
 }

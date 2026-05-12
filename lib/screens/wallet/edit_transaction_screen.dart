@@ -16,6 +16,7 @@ import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -466,11 +467,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   Future<void> _saveEdits() async {
     if (_amountController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('amountCannotBeEmpty'.tr()),
-        ),
-      );
+      AppSnackbar.show(context, message: 'amountCannotBeEmpty'.tr(), isError: true);
       return;
     }
 
@@ -478,11 +475,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     final amount = double.tryParse(rawAmount) ?? 0;
 
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('amountCannotBeZero'.tr()),
-        ),
-      );
+      AppSnackbar.show(context, message: 'amountCannotBeZero'.tr(), isError: true);
       return;
     }
 
@@ -558,9 +551,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
     if (context.mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('transactionUpdated'.tr())),
-      );
+      AppSnackbar.show(context, message: 'transactionUpdated'.tr(), isError: false);
     }
   }
 
@@ -600,9 +591,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   Future<void> _scanReceipt() async {
     if (_receiptImagePath == null || _receiptImagePath!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('selectPhotoFirst'.tr())),
-      );
+      AppSnackbar.show(context, message: 'selectPhotoFirst'.tr(), isError: false);
       return;
     }
 
@@ -644,13 +633,9 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       }
 
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('autoFilled'.tr())),
-      );
+      AppSnackbar.show(context, message: 'autoFilled'.tr(), isError: false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      AppSnackbar.show(context, message: e.toString(), isError: false);
     } finally {
       if (mounted) {
         setState(() {
@@ -822,9 +807,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       final position = await _locationService.getCurrentPosition();
       if (position == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('cannotGetLocation'.tr())),
-          );
+          AppSnackbar.show(context, message: 'cannotGetLocation'.tr(), isError: true);
         }
         return;
       }
@@ -843,9 +826,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mendapatkan lokasi: $e')),
-        );
+        AppSnackbar.show(context, message: 'Gagal mendapatkan lokasi: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLocating = false);

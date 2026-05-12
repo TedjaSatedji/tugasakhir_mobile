@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/character_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -143,11 +144,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         .updateAvatarUrl(_avatarPath!);
                   }
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profil berhasil diperbarui'),
-                    ),
-                  );
+                  AppSnackbar.show(context, message: 'Profil berhasil diperbarui', isError: false);
                 },
                 child: const Text(
                   'Simpan Perubahan',

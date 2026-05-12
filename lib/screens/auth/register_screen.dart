@@ -5,6 +5,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -173,21 +174,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (_emailController.text.isEmpty ||
                           _passwordController.text.isEmpty ||
                           _confirmPasswordController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(AppStrings.errorEmptyField),
-                          ),
-                        );
+                        AppSnackbar.show(context, message: AppStrings.errorEmptyField, isError: true);
                         return;
                       }
 
                       if (_passwordController.text !=
                           _confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(AppStrings.errorPasswordMismatch),
-                          ),
-                        );
+                        AppSnackbar.show(context, message: AppStrings.errorPasswordMismatch, isError: true);
                         return;
                       }
 
@@ -201,23 +194,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
 
                       if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Pendaftaran berhasil. Cek email untuk verifikasi.',
-                            ),
-                          ),
+                        AppSnackbar.show(
+                          context, 
+                          message: 'Pendaftaran berhasil. Cek email untuk verifikasi.',
+                          isError: false,
                         );
 
                         Navigator.pop(context);
                       } else {
                         final message = context.read<AuthProvider>().errorMessage ??
                             AppStrings.errorNetworkError;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                          ),
-                        );
+                        AppSnackbar.show(context, message: message, isError: false);
                       }
                     },
                     child: Text(

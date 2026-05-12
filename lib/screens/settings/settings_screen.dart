@@ -9,6 +9,7 @@ import '../../providers/theme_provider.dart';
 import '../../services/local_notification_service.dart';
 import '../games/budget_invaders_screen.dart';
 import '../../core/extensions/theme_extensions.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -383,14 +384,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.pinSetSuccess)),
-      );
+      AppSnackbar.show(context, message: AppStrings.pinSetSuccess, isError: false);
     } else {
       final message = authProvider.errorMessage ?? AppStrings.errorNetworkError;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      AppSnackbar.show(context, message: message, isError: false);
     }
   }
 }

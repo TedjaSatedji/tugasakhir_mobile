@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/notification_model.dart';
 import '../../providers/notification_provider.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -19,9 +20,7 @@ class NotificationScreen extends StatelessWidget {
             icon: const Icon(Icons.done_all, color: AppColors.primaryNeon),
             onPressed: () {
               context.read<NotificationProvider>().markAllAsRead();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('allNotificationsMarkedRead'.tr())),
-              );
+              AppSnackbar.show(context, message: 'allNotificationsMarkedRead'.tr(), isError: false);
             },
             tooltip: 'markAllAsRead'.tr(),
           ),

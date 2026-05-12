@@ -14,6 +14,7 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/quest_provider.dart';
 import 'edit_transaction_screen.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final TransactionModel transaction;
@@ -121,9 +122,7 @@ class TransactionDetailScreen extends StatelessWidget {
                     .read<TransactionProvider>()
                     .deleteTransaction(currentTransaction.id);
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('transactionDeleted'.tr())),
-                );
+                AppSnackbar.show(context, message: 'transactionDeleted'.tr(), isError: false);
               }
             },
           ),

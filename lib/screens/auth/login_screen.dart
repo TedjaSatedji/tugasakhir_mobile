@@ -8,6 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -186,11 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (_emailController.text.isEmpty ||
                                     _passwordController.text.isEmpty) {
                                   ScaffoldMessenger.of(context).clearSnackBars();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(AppStrings.errorEmptyField),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: AppStrings.errorEmptyField, isError: true);
                                   return;
                                 }
 
@@ -205,30 +202,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                 if (success) {
                                   ScaffoldMessenger.of(context).clearSnackBars();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(AppStrings.successLoginMessage),
-                                    ),
-                                  );
+                                  AppSnackbar.show(context, message: AppStrings.successLoginMessage, isError: false);
                                 } else {
                                   final message = authProvider.errorMessage ??
                                       AppStrings.errorNetworkError;
                                   final isUnverified = message.toLowerCase().contains('verif');
                                   ScaffoldMessenger.of(context).clearSnackBars();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(message),
-                                      action: isUnverified
-                                          ? SnackBarAction(
-                                              label: 'RESEND',
-                                              textColor: context.bg,
-                                              backgroundColor: context.primary,
-                                              onPressed: () {
-                                                _showResendVerificationDialog(context);
-                                              },
-                                            )
-                                          : null,
-                                    ),
+                                  AppSnackbar.show(
+                                    context, 
+                                    message: message,
+                                    isError: true,
+                                    action: isUnverified
+                                        ? SnackBarAction(
+                                            label: 'RESEND',
+                                            textColor: context.bg,
+                                            backgroundColor: context.primary,
+                                            onPressed: () {
+                                              _showResendVerificationDialog(context);
+                                            },
+                                          )
+                                        : null,
                                   );
                                 }
                               },
@@ -344,14 +337,10 @@ class _LoginScreenState extends State<LoginScreen> {
               final success = await authProvider.resendVerificationEmail(emailController.text);
               if (context.mounted) {
                 if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Verification email sent! Please check your inbox.')),
-                  );
+                  AppSnackbar.show(context, message: 'Verification email sent! Please check your inbox.', isError: false);
                 } else {
                   final msg = authProvider.errorMessage ?? 'Failed to send email';
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(msg)),
-                  );
+                  AppSnackbar.show(context, message: msg, isError: false);
                 }
               }
             },

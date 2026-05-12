@@ -15,6 +15,7 @@ import '../../widgets/coin_reward_overlay.dart';
 import 'create_quest_screen.dart';
 import 'quest_detail_screen.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/app_snackbar.dart';
 
 const int _maxAmountDigits = 15;
 
@@ -664,9 +665,7 @@ class _GoalCard extends StatelessWidget {
                       );
 
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('fundsAddedSuccess'.tr())),
-                      );
+                      AppSnackbar.show(context, message: 'fundsAddedSuccess'.tr(), isError: false);
                     }
                   },
                   style: ElevatedButton.styleFrom(

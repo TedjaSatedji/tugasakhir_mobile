@@ -8,6 +8,7 @@ import '../../models/quest_model.dart';
 import '../../providers/quest_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
+import '../../core/utils/app_snackbar.dart';
 
 const int _maxAmountDigits = 15;
 
@@ -297,9 +298,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                 ),
                 onPressed: () {
                   if (_titleController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('targetNameRequired'.tr())),
-                    );
+                    AppSnackbar.show(context, message: 'targetNameRequired'.tr(), isError: false);
                     return;
                   }
 
@@ -307,9 +306,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                   final amount = double.tryParse(rawAmount) ?? 0;
 
                   if (amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('amountCannotBeZero'.tr())),
-                    );
+                    AppSnackbar.show(context, message: 'amountCannotBeZero'.tr(), isError: true);
                     return;
                   }
 
@@ -330,11 +327,7 @@ class _CreateQuestScreenState extends State<CreateQuestScreen> {
                   );
 
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('savingsTargetCreated'.tr()),
-                    ),
-                  );
+                  AppSnackbar.show(context, message: 'savingsTargetCreated'.tr(), isError: false);
                 },
                 child: Text(
                   'createTarget'.tr(),

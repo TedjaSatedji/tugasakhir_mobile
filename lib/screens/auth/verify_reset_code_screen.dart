@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import 'reset_password_screen.dart';
+import '../../core/utils/app_snackbar.dart';
 
 class VerifyResetCodeScreen extends StatefulWidget {
   const VerifyResetCodeScreen({super.key, required this.email});
@@ -86,11 +87,7 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
                           ? null
                           : () async {
                               if (_codeController.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(AppStrings.errorEmptyField),
-                                  ),
-                                );
+                                AppSnackbar.show(context, message: AppStrings.errorEmptyField, isError: true);
                                 return;
                               }
 
@@ -116,11 +113,7 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
                               } else {
                                 final message = authProvider.errorMessage ??
                                     AppStrings.errorNetworkError;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(message),
-                                  ),
-                                );
+                                AppSnackbar.show(context, message: message, isError: false);
                               }
                             },
                       child: authProvider.isLoading

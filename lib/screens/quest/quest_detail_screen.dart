@@ -11,6 +11,9 @@ import '../../providers/transaction_provider.dart';
 import '../../models/transaction_model.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/extensions/theme_extensions.dart';
+import '../../core/utils/app_snackbar.dart';
+
 class QuestDetailScreen extends StatefulWidget {
   final QuestModel quest;
 
@@ -46,11 +49,60 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
               IconButton(
                 icon: const Icon(Icons.delete, color: AppColors.error),
                 onPressed: () async {
-                  await questProvider.deleteQuest(currentQuest.id);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Target dihapus')),
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: context.card,
+                      title: Text(
+                        'deleteTargetTitle'.tr(),
+                        style: TextStyle(
+                          color: context.text,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      content: Text(
+                        'deleteTargetDesc'.tr(),
+                        style: TextStyle(
+                          color: context.textDim,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(
+                            'cancel'.tr(),
+                            style: TextStyle(
+                              color: context.textDim,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(
+                            'delete'.tr(),
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
+
+                  if (confirm == true) {
+                    await questProvider.deleteQuest(currentQuest.id);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      AppSnackbar.show(
+                        context,
+                        message: 'targetDeleted'.tr(),
+                      );
+                    }
+                  }
                 },
               )
             ],
@@ -357,9 +409,7 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                 final amount = double.tryParse(rawAmount) ?? 0;
 
                 if (amount <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('amountCannotBeZero'.tr())),
-                  );
+                  AppSnackbar.show(context, message: 'amountCannotBeZero'.tr(), isError: true);
                   return;
                 }
 
@@ -392,9 +442,7 @@ class _QuestDetailScreenState extends State<QuestDetailScreen> {
                     await context.read<CharacterProvider>().addXP(xpAwarded);
                   }
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Dana berhasil ditambahkan!')),
-                  );
+                  AppSnackbar.show(context, message: 'Dana berhasil ditambahkan!', isError: false);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryNeon,
