@@ -215,8 +215,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     action: isUnverified
                                         ? SnackBarAction(
                                             label: 'RESEND',
-                                            textColor: context.bg,
-                                            backgroundColor: context.primary,
+                                            textColor: AppColors.error, 
+                                            backgroundColor: Colors.white, 
                                             onPressed: () {
                                               _showResendVerificationDialog(context);
                                             },
