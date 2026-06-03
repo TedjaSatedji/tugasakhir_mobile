@@ -7,6 +7,7 @@ import '../../models/shop_item_model.dart';
 import '../../providers/character_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../games/leaderboard_screen.dart';
+import '../../core/extensions/theme_extensions.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -90,12 +91,12 @@ class _UpgradesTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
           child: Text(
             'Upgrade permanen untuk Budget Invaders.',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: context.textDim,
               fontFamily: 'Poppins',
               fontSize: 13,
             ),
@@ -195,7 +196,7 @@ class _UpgradeCardState extends State<_UpgradeCard>
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.darkCard,
+          color: context.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isMax
@@ -216,19 +217,19 @@ class _UpgradeCardState extends State<_UpgradeCard>
                     children: [
                       Text(
                         widget.def.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: AppColors.textPrimary,
+                          color: context.text,
                         ),
                       ),
                       Text(
                         widget.def.description,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: context.textDim,
                         ),
                       ),
                     ],
@@ -271,7 +272,7 @@ class _UpgradeCardState extends State<_UpgradeCard>
                   decoration: BoxDecoration(
                     color: filled
                         ? AppColors.primaryNeon
-                        : AppColors.textSecondary.withOpacity(0.2),
+                        : context.textDim.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -405,7 +406,7 @@ class _FrameCardState extends State<_FrameCard>
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.darkCard,
+          color: context.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: widget.isEquipped
@@ -438,11 +439,11 @@ class _FrameCardState extends State<_FrameCard>
             Text(
               '${widget.frame.emoji} ${widget.frame.name}',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: AppColors.textPrimary,
+                color: context.text,
               ),
             ),
             const SizedBox(height: 8),
@@ -528,11 +529,11 @@ class _HolographicPreviewState extends State<_HolographicPreview>
               transform: GradientRotation(_ctrl.value * 2 * math.pi),
             ),
           ),
-          child: const Padding(
-            padding: EdgeInsets.all(3),
+          child: Padding(
+            padding: const EdgeInsets.all(3),
             child: CircleAvatar(
-              backgroundColor: AppColors.darkCard,
-              child: Icon(Icons.person, color: Colors.white54, size: 28),
+              backgroundColor: context.card,
+              child: const Icon(Icons.person, color: Colors.white54, size: 28),
             ),
           ),
         );

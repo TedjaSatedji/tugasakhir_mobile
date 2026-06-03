@@ -12,6 +12,7 @@ import '../../providers/shop_provider.dart';
 import '../../providers/character_provider.dart';
 import '../../widgets/coin_reward_overlay.dart';
 import 'leaderboard_screen.dart';
+import '../../core/extensions/theme_extensions.dart';
 
 // ─── Data Models ────────────────────────────────────────────────────────────
 
@@ -518,7 +519,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: context.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
@@ -533,11 +534,11 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
             fontSize: 20,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Permainan sedang berlangsung.\nProgress kamu akan hilang jika keluar.',
           style: TextStyle(
             fontFamily: 'Poppins',
-            color: AppColors.textSecondary,
+            color: context.textDim,
             fontSize: 14,
           ),
         ),
@@ -610,9 +611,9 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: context.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.darkBg,
+        backgroundColor: context.bg,
         leading: widget.autoStart
             // ── Full-screen game route: always show back button
             ? IconButton(
@@ -772,7 +773,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
 
   Widget _buildStartScreen() {
     return Container(
-      color: AppColors.darkBg,
+      color: context.bg,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -796,22 +797,22 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
             const SizedBox(height: 24),
             _buildLegend(),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               '👆 Drag layar untuk gerak\n'
               '⚡ Goyangkan HP (flick) untuk EMP (Hapus peluru musuh!)\n'
               '🚀 Jangan sampai nyawamu habis!',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: context.textDim,
                   fontFamily: 'Poppins'),
             ),
             const SizedBox(height: 12),
-            const Text('Lindungi tabunganmu dari serangan pengeluaran!',
+            Text('Lindungi tabunganmu dari serangan pengeluaran!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: context.textDim,
                     fontFamily: 'Poppins')),
             const SizedBox(height: 32),
             ElevatedButton(
@@ -854,7 +855,7 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: context.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.primaryNeon.withOpacity(0.3)),
       ),
@@ -870,8 +871,8 @@ class BudgetInvadersScreenState extends State<BudgetInvadersScreen>
                       SizedBox(
                           width: 80,
                           child: Text(e.$2,
-                              style: const TextStyle(
-                                  color: AppColors.textPrimary,
+                              style: TextStyle(
+                                  color: context.text,
                                   fontFamily: 'Poppins',
                                   fontSize: 13))),
                       const SizedBox(width: 8),
