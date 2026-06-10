@@ -11,6 +11,7 @@ import '../../core/extensions/theme_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/receipt_ai_service.dart';
+import '../../core/services/api_client.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/character_provider.dart';
@@ -38,6 +39,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   String? _receiptImagePath;
   bool _isScanning = false;
+  bool _isPredictingCategory = false;
   bool _isLocating = false;
   double? _latitude;
   double? _longitude;
@@ -168,6 +170,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               decoration: InputDecoration(
                 hintText: 'noDescription'.tr(),
                 hintStyle: TextStyle(color: context.textDim),
+                suffixIcon: IconButton(
+                  icon: _isPredictingCategory 
+                      ? const SizedBox(
+                          width: 16, height: 16, 
+                          child: CircularProgressIndicator(strokeWidth: 2)
+                        )
+                      : const Icon(Icons.auto_awesome, color: Colors.amber),
+                  onPressed: _isPredictingCategory ? null : _predictCategory,
+                  tooltip: "Tebak Kategori Cerdas",
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -726,6 +738,37 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       setState(() {
         _selectedDate = picked;
       });
+    }
+  }
+
+  Future<void> _predictCategory() async {
+    final text = _descriptionController.text.trim();
+    if (text.isEmpty) {
+      AppSnackbar.show(context, message: 'Masukkan deskripsi terlebih dahulu', isError: true);
+      return;
+    }
+
+    setState(() => _isPredictingCategory = true);
+    try {
+      final response = await ApiClient().dio.post('/ml/predict-category', data: {
+        'description': text,
+      });
+      final categoryInt = response.data['category'] as int?;
+      if (categoryInt != null && categoryInt >= 0 && categoryInt < ExpenseCategory.values.length) {
+        setState(() {
+          _selectedCategory = ExpenseCategory.values[categoryInt];
+          _selectedType = TransactionType.expense; // Usually if it has a category it's an expense
+        });
+        if (mounted) {
+          AppSnackbar.show(context, message: 'Kategori ditebak: ${_selectedCategory.name}', isError: false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackbar.show(context, message: 'Gagal menebak kategori', isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isPredictingCategory = false);
     }
   }
 

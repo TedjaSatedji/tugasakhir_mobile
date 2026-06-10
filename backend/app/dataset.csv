@@ -1,0 +1,514 @@
+description,category
+nasi goreng,0
+starbucks,0
+mcdonalds,0
+groceries,0
+kopi,0
+makan siang,0
+snack,0
+martabak manis,0
+nasi padang,0
+sate ayam,0
+roti bakar,0
+indomie,0
+bakso,0
+soto ayam,0
+kfc,0
+ayam geprek,0
+teh manis,0
+boba,0
+warteg,0
+sayur mayur,0
+beras,0
+telur,0
+ayam potong,0
+buah buahan,0
+susu,0
+keju,0
+roti tawar,0
+selai,0
+mie instan,0
+gorengan,0
+es teh,0
+kopi kenangan,0
+janji jiwa,0
+chatime,0
+mixue,0
+burger king,0
+pizza hut,0
+domino,0
+hokben,0
+richeese,0
+mie gacoan,0
+nasi uduk,0
+pecel lele,0
+bubur ayam,0
+lontong sayur,0
+ketoprak,0
+gado gado,0
+nasi rames,0
+sate padang,0
+rendang,0
+ayam bakar,0
+ikan bakar,0
+cumi saus padang,0
+kepiting,0
+udang saus tiram,0
+seblak,0
+cilok,0
+cireng,0
+batagor,0
+siomay,0
+pempek,0
+es krim,0
+gelato,0
+yogurt,0
+yakult,0
+air mineral,0
+aqua,0
+le minerale,0
+fanta,0
+sprite,0
+coca cola,0
+teh botol,0
+jus alpukat,0
+jus mangga,0
+baju,1
+sepatu,1
+uniqlo,1
+zara,1
+kaos,1
+celana,1
+jaket,1
+topi,1
+kemeja,1
+dress,1
+rok,1
+sandal,1
+hoodie,1
+tas selempang,1
+dompet,1
+sabuk,1
+kacamata hitam,1
+jam tangan,1
+sweater,1
+h&m,1
+kemeja flanel,1
+celana jeans,1
+celana bahan,1
+celana pendek,1
+celana cargo,1
+legging,1
+bra,1
+cd,1
+kaos kaki,1
+piyama,1
+baju tidur,1
+gamis,1
+hijab,1
+kerudung,1
+mukena,1
+baju renang,1
+kacamata baca,1
+lensa kontak,1
+softlens,1
+sepatu kets,1
+sneakers,1
+sepatu pantofel,1
+high heels,1
+flat shoes,1
+boots,1
+tas ransel,1
+backpack,1
+koper,1
+cincin,1
+kalung,1
+gelang,1
+anting,1
+aksesoris rambut,1
+jepit rambut,1
+ikat rambut,1
+pomade,1
+parfum,1
+cologne,1
+body spray,1
+deodorant,1
+skincare,1
+pelembab,1
+sabun cuci muka,1
+facial wash,1
+sunblock,1
+sunscreen,1
+makeup,1
+lipstik,1
+bedak,1
+gundam,2
+game,2
+keyboard,2
+mouse,2
+buku,2
+lego,2
+steam wallet,2
+top up diamond,2
+raket badminton,2
+bola basket,2
+gitar,2
+alat pancing,2
+kanvas lukis,2
+cat air,2
+diecast,2
+action figure,2
+rubik,2
+ps5 game,2
+nintendo switch,2
+stik ps,2
+ps plus,2
+xbox game pass,2
+valorant point,2
+pubg uc,2
+mobile legend diamond,2
+free fire dm,2
+genshin impact crystal,2
+buku novel,2
+komik,2
+manga,2
+light novel,2
+majalah,2
+koran,2
+alat lukis,2
+kuas,2
+palet,2
+sketchbook,2
+pensil warna,2
+crayon,2
+spidol,2
+bola sepak,2
+sepatu bola,2
+sepatu futsal,2
+jersey bola,2
+raket tenis,2
+bola tenis,2
+meja pingpong,2
+bet pingpong,2
+kok badminton,2
+kacamata renang,2
+senar gitar,2
+pick gitar,2
+efek gitar,2
+amplifier,2
+microphone,2
+kamera,2
+lensa kamera,2
+tripod,2
+drone,2
+sd card,2
+hardisk eksternal,2
+flashdisk,2
+mousepad,2
+headset gaming,2
+kursi gaming,2
+meja gaming,2
+gojek,3
+grab,3
+bensin,3
+parkir,3
+kereta,3
+tol,3
+angkot,3
+busway,3
+mrt,3
+lrt,3
+tiket pesawat,3
+travel,3
+bensin motor,3
+isi emoney,3
+tambal ban,3
+cuci motor,3
+cuci mobil,3
+ojol,3
+taxi,3
+gocar,3
+maxim,3
+indriver,3
+tiket kereta api,3
+krl,3
+commuter line,3
+transjakarta,3
+mikrotrans,3
+jaklingko,3
+tiket bus,3
+sewa mobil,3
+rental motor,3
+pertamax,3
+pertalite,3
+solar,3
+shell super,3
+vpower,3
+bp 92,3
+ganti oli,3
+servis motor,3
+servis mobil,3
+sparepart motor,3
+ban motor,3
+helm,3
+jas hujan,3
+sarung tangan motor,3
+masker motor,3
+gembok motor,3
+bayar parkir mall,3
+parkir liar,3
+pak ogah,3
+tiket kapal laut,3
+pelni,3
+penyeberangan,3
+fery,3
+tiket damri,3
+shuttle bus,3
+airport train,3
+raillink,3
+sewa sepeda,3
+otoped,3
+skuter listrik,3
+obat,4
+dokter,4
+rumah sakit,4
+vitamin,4
+apotek,4
+masker,4
+hand sanitizer,4
+periksa gigi,4
+kacamata minus,4
+klinik,4
+puskesmas,4
+obat flu,4
+paracetamol,4
+betadine,4
+plester,4
+vaksin,4
+suplemen,4
+salonpas,4
+tolak angin,4
+koyo,4
+panadol,4
+bodrex,4
+promag,4
+antimo,4
+diapet,4
+imodium,4
+minyak kayu putih,4
+minyak telon,4
+freshcare,4
+vicks,4
+inhaler,4
+counterpain,4
+thrombophob,4
+betadine kumur,4
+sikat gigi,4
+pasta gigi,4
+odol,4
+listerine,4
+sabun mandi,4
+shampo,4
+kondisioner,4
+body lotion,4
+tisu basah,4
+tisu kering,4
+pembalut,4
+pantyliner,4
+kapas,4
+korek kuping,4
+cutton bud,4
+test pack,4
+kondom,4
+vitamin c,4
+vitamin d,4
+omega 3,4
+madu,4
+propolis,4
+sari kurma,4
+habbatussauda,4
+periksa mata,4
+cek darah,4
+rontgen,4
+mri,4
+usg,4
+fisioterapi,4
+pijat urut,4
+kerokan,4
+spp,5
+kursus,5
+udemy,5
+tuition,5
+sekolah,5
+buku tulis,5
+pensil,5
+pulpen,5
+fotocopy,5
+print tugas,5
+buku pelajaran,5
+seragam sekolah,5
+les bimbel,5
+pendaftaran ujian,5
+uang pendaftaran,5
+bayar semesteran,5
+ruang guru,5
+langganan jurnal,5
+sertifikasi,5
+buku catatan,5
+ukt,5
+sks,5
+wisuda,5
+toga,5
+jilid skripsi,5
+kertas hvs,5
+tinta printer,5
+tipx,5
+penghapus,5
+penggaris,5
+rautan,5
+tempat pensil,5
+kalkulator,5
+kamus,5
+flashcard,5
+langganan coursera,5
+edx,5
+zenius,5
+quipper,5
+pendaftaran sbmptn,5
+utbk,5
+ujian mandiri,5
+tes toefl,5
+ielts,5
+tes cpns,5
+buku cpns,5
+buku tpa,5
+buku psikotes,5
+prakarya,5
+alat peraga,5
+sumbangan sekolah,5
+seragam pramuka,5
+seragam olahraga,5
+lks,5
+buku paket,5
+buku tahunan,5
+iuran osis,5
+pramuka,5
+spp bulanan,5
+bioskop,6
+netflix,6
+spotify,6
+nonton,6
+konser,6
+disney plus,6
+tiket dufan,6
+timezone,6
+youtube premium,6
+langganan vidio,6
+karcis masuk,6
+billiard,6
+karaoke,6
+main bowling,6
+langganan hbo,6
+tiket pameran,6
+taman hiburan,6
+waterboom,6
+netcafe,6
+warnet,6
+tiket xxi,6
+cgv,6
+cinepolis,6
+popcorn bioskop,6
+langganan viu,6
+we tv,6
+iqiyi,6
+prime video,6
+apple tv,6
+apple music,6
+joox,6
+youtube music,6
+soundcloud,6
+tiket festival,6
+rave party,6
+dj,6
+clubbing,6
+masuk bar,6
+escape room,6
+trampolin park,6
+ice skating,6
+sea world,6
+kebun binatang,6
+taman safari,6
+trans studio,6
+tiket museum,6
+galeri seni,6
+pameran lukisan,6
+photobox,6
+timezone card,6
+amazon,6
+fun world,6
+main ps,6
+rental ps,6
+board game cafe,6
+main uno,6
+monopoli,6
+netflix sharing,6
+lainnya,7
+sedekah,7
+sumbangan,7
+listrik,7
+air,7
+token listrik,7
+pulsa,7
+paket data,7
+wifi,7
+indihome,7
+bayar kos,7
+iuran rt,7
+denda,7
+pajak,7
+admin bank,7
+potong rambut,7
+barber,7
+donasi panti,7
+sedekah jumat,7
+uang kas,7
+bayar cicilan,7
+pinjol,7
+paylater,7
+kartu kredit,7
+denda tilang,7
+denda perpus,7
+pajak motor,7
+stnk,7
+bpkb,7
+pajak mobil,7
+pbb,7
+pajak penghasilan,7
+npwp,7
+biaya transfer,7
+biaya admin bulanan,7
+potongan admin,7
+uang keamanan,7
+uang kebersihan,7
+iuran sampah,7
+sumbangan masjid,7
+kotak amal,7
+pengemis,7
+pengamen,7
+anak jalanan,7
+panti asuhan,7
+panti jompo,7
+uang kondangan,7
+amplop nikahan,7
+kado ultah,7
+kado pernikahan,7
+parsel,7
+hampers,7
+bunga papan,7
+buket bunga,7
+jajan pasar,7
+potong rambut salon,7
+creambath,7
+spa,7
+lulur,7
+pijat refleksi,7

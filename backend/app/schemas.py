@@ -118,3 +118,15 @@ class LeaderboardEntry(BaseModel):
     avatar_url: str | None = None
     high_score: int
     email_prefix: str
+
+
+class AIAdvisorResponse(BaseModel):
+    message: str
+
+
+class PredictCategoryRequest(BaseModel):
+    description: str
+
+
+class PredictCategoryResponse(BaseModel):
+    category: int

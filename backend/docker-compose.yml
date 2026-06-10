@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  backend:
+    build: .
+    container_name: fastapi_backend
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+    # If your app uses .env, uncomment the line below
+    env_file:
+      - .env
+
+  # Cloudflared Tunnel Service
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared_tunnel
+    # Option 2: Persistent Tunnel (requires you to set up a tunnel in Cloudflare Zero Trust)
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARED_TUNNEL_TOKEN}
+    
+    depends_on:
+      - backend
+    restart: unless-stopped

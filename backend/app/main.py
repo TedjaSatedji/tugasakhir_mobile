@@ -298,6 +298,89 @@ async def extract_receipt(file: UploadFile = File(...)):
     )
 
 
+@app.get("/ai/advisor", response_model=schemas.AIAdvisorResponse)
+async def get_ai_advisor(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not GOOGLE_AI_API_KEY:
+        raise HTTPException(status_code=500, detail="AI API key is not configured")
+
+    # Get user's character name
+    character = current_user.character
+    char_name = character.name if character else "Adventurer"
+
+    # Get user's active quests
+    active_quests = [q for q in current_user.quests if q.status == 0] # 0 = active
+    quests_text = ", ".join([f"'{q.title}' (Saved {q.current_saved_amount}/{q.target_amount})" for q in active_quests])
+    if not quests_text:
+        quests_text = "No active quests."
+
+    # Get recent transactions (last 10)
+    recent_tx = sorted(current_user.transactions, key=lambda x: x.timestamp, reverse=True)[:10]
+    tx_types = {0: "income", 1: "expense", 2: "transfer"}
+    tx_text = "\n".join([f"- {tx_types.get(tx.type, 'unknown')}: {tx.amount} for {tx.description}" for tx in recent_tx])
+    if not tx_text:
+        tx_text = "No recent transactions."
+
+    prompt = (
+        f"You are the 'Guild Treasurer', an NPC in a Life-RPG app that helps users manage their finances. "
+        f"The user's character name is {char_name}. "
+        f"Here are their active savings quests: {quests_text}\n"
+        f"Here are their 10 most recent transactions:\n{tx_text}\n"
+        "Give them a short, encouraging, RPG-themed piece of financial advice (max 3 sentences). "
+        "Do not use markdown formatting. Be in character!"
+    )
+
+    url = f"{GOOGLE_AI_BASE_URL}/models/{GOOGLE_AI_MODEL}:generateContent"
+    request_body = {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt},
+                ],
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 200,
+        },
+    }
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.post(
+            url,
+            params={"key": GOOGLE_AI_API_KEY},
+            json=request_body,
+        )
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI request failed: {response.text}",
+        )
+
+    data = response.json()
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="AI response was invalid")
+
+    return schemas.AIAdvisorResponse(message=text.strip())
+
+
+@app.post("/ml/predict-category", response_model=schemas.PredictCategoryResponse)
+def predict_expense_category(
+    payload: schemas.PredictCategoryRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    from .ml_model import predict_category
+    predicted_category = predict_category(payload.description)
+    return schemas.PredictCategoryResponse(category=predicted_category)
+
+
 @app.post("/auth/register", response_model=schemas.MessageResponse)
 def register(
     payload: schemas.RegisterRequest,
